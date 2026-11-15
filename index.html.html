@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>子供になりたい｜放課後のひみつ基地</title>
+  <title>ココダケ｜放課後のひみつ基地</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,15 +17,37 @@
       background-size: 20px 20px;
       color: #1e293b;
       padding-bottom: env(safe-area-inset-bottom);
+      -webkit-tap-highlight-color: transparent;
     }
     .font-maru {
       font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
     }
+    @keyframes popBounce {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.18) rotate(-3deg); }
+      70% { transform: scale(0.95) rotate(2deg); }
+      100% { transform: scale(1); }
+    }
+    @keyframes floatUpFade {
+      0% { opacity: 0; transform: translateY(6px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-pop {
+      animation: popBounce 0.36s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .animate-card-in {
+      animation: floatUpFade 0.28s ease-out;
+    }
     .stamp-btn {
-      transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
-      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
     .stamp-btn:active {
+      transform: scale(0.9);
+    }
+    .post-btn {
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease, filter 0.16s ease;
+    }
+    .post-btn:active {
       transform: scale(0.94);
     }
     .no-scrollbar::-webkit-scrollbar {
@@ -39,8 +61,8 @@
 </head>
 <body class="min-h-screen flex flex-col">
   <!-- Header -->
-  <header class="sticky top-0 z-30 bg-[#fffbf2]/90 backdrop-blur-md border-b border-amber-200/70">
-    <div class="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between gap-2">
+  <header class="sticky top-0 z-30 bg-[#fffbf2]/95 backdrop-blur-md border-b border-amber-200/70">
+    <div class="max-w-xl mx-auto px-3.5 sm:px-4 py-2.5 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white shadow-sm shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -48,10 +70,7 @@
           </svg>
         </div>
         <div class="min-w-0">
-          <div class="flex items-center gap-1.5">
-            <h1 class="font-maru text-base sm:text-lg font-bold tracking-tight text-slate-900 truncate">子供になりたい</h1>
-            <span id="dbStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 shrink-0">接続中...</span>
-          </div>
+          <h1 class="font-maru text-lg font-bold tracking-tight text-slate-900 truncate leading-tight">ココダケ</h1>
           <p class="text-[11px] text-slate-500 truncate">正解もいいね数もない、放課後のひみつ基地</p>
         </div>
       </div>
@@ -71,34 +90,47 @@
   </header>
 
   <!-- Main Content -->
-  <main class="flex-1 max-w-2xl w-full mx-auto px-4 py-4 sm:py-6 space-y-4 pb-24 sm:pb-10">
+  <main class="flex-1 max-w-xl w-full mx-auto px-3.5 sm:px-4 py-3.5 sm:py-5 space-y-3.5 pb-24 sm:pb-10">
     <!-- Welcome Banner (Dismissible) -->
-    <section id="welcomeBanner" class="hidden rounded-2xl bg-white/95 border border-teal-200 px-4 py-3 shadow-sm flex items-start justify-between gap-3">
+    <section id="welcomeBanner" class="hidden rounded-2xl bg-white/95 border border-teal-200 px-3.5 py-2.5 shadow-xs flex items-start justify-between gap-2.5">
       <div class="text-xs text-slate-700 leading-relaxed">
-        <span class="font-maru font-bold text-teal-800">ようこそ！</span>
-        ここは「フォロワー数」も「古参・新規」もない場所やで。思いついたことをそのまま置いていってな。
+        <span class="font-maru font-bold text-teal-800">ココダケへようこそ！</span>
+        ここは「フォロワー数」も「古参・新規」もない場所やで。今の気分といっしょに本音を置いていってな。
       </div>
       <button id="dismissWelcomeBtn" type="button" class="text-xs text-slate-400 hover:text-slate-700 px-1.5 py-0.5 shrink-0" aria-label="閉じる">✕</button>
     </section>
 
     <!-- Weekly Prompt Banner -->
-    <section class="rounded-3xl bg-gradient-to-br from-amber-100/90 via-orange-50 to-rose-50 border border-amber-200/80 p-4 sm:p-5 shadow-sm space-y-2.5">
+    <section class="rounded-3xl bg-gradient-to-br from-amber-100/90 via-orange-50 to-rose-50 border border-amber-200/80 p-4 shadow-sm space-y-2">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/90 text-amber-900 border border-amber-200 shadow-xs">
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/90 text-amber-900 border border-amber-200">
           <span>✉️ 今週のお兄ちゃんからのお題</span>
         </span>
-        <select id="topicSelect" aria-label="お題を切り替え" class="text-xs bg-white/95 border border-amber-300 rounded-xl px-2.5 py-1.5 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 max-w-full sm:max-w-xs"></select>
+        <select id="topicSelect" aria-label="お題を切り替え" class="text-xs bg-white/95 border border-amber-300 rounded-xl px-2.5 py-1.5 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 w-full sm:w-auto sm:max-w-[240px]"></select>
       </div>
       <h2 id="currentTopicTitle" class="font-maru text-base sm:text-lg font-bold text-slate-900 leading-snug"></h2>
       <p id="currentTopicDesc" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
     </section>
 
     <!-- Post Composer -->
-    <section id="composerSection" class="rounded-3xl bg-white border border-amber-200/80 p-4 sm:p-5 shadow-sm">
+    <section id="composerSection" class="rounded-3xl bg-white border border-amber-200/80 p-4 shadow-sm">
       <form id="postForm" class="space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center justify-between gap-2">
           <span class="font-maru text-sm font-bold text-slate-800">✏️ 本音をポンと置いてみる</span>
           <span class="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">いいね数・履歴なし</span>
+        </div>
+
+        <!-- Mood Selector -->
+        <div class="space-y-1.5">
+          <div class="text-[11px] font-semibold text-slate-500">今の気分は？</div>
+          <div id="moodSelector" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            <button type="button" data-mood="🌟 絶好調" class="mood-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-amber-300 bg-amber-100 text-amber-900 whitespace-nowrap transition active:scale-95">🌟 絶好調</button>
+            <button type="button" data-mood="😊 元気" class="mood-chip px-3 py-1.5 rounded-full text-xs font-medium border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap transition active:scale-95">😊 元気</button>
+            <button type="button" data-mood="🎉 嬉しい" class="mood-chip px-3 py-1.5 rounded-full text-xs font-medium border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap transition active:scale-95">🎉 嬉しい</button>
+            <button type="button" data-mood="😮‍💨 疲れた" class="mood-chip px-3 py-1.5 rounded-full text-xs font-medium border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap transition active:scale-95">😮‍💨 疲れた</button>
+            <button type="button" data-mood="😢 悲しい" class="mood-chip px-3 py-1.5 rounded-full text-xs font-medium border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap transition active:scale-95">😢 悲しい</button>
+            <button type="button" data-mood="😵 困った" class="mood-chip px-3 py-1.5 rounded-full text-xs font-medium border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap transition active:scale-95">😵 困った</button>
+          </div>
         </div>
 
         <textarea id="postContent" rows="3" maxlength="200" placeholder="ここに思ったことをそのまま書いてみて（200文字まで）。誰が書いたかの履歴は残らへんよ。" class="w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-3.5 py-3 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-none"></textarea>
@@ -107,19 +139,19 @@
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div class="grid grid-cols-2 sm:flex sm:items-center gap-2">
-            <select id="postTag" aria-label="タグを選択" class="text-xs rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <select id="postTag" aria-label="タグを選択" class="text-xs rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-amber-400">
               <option value="#将来のこと">#将来のこと</option>
               <option value="#学校・日常">#学校・日常</option>
               <option value="#モヤモヤ">#モヤモヤ</option>
               <option value="#やってみたい">#やってみたい</option>
             </select>
-            <input id="postNickname" type="text" maxlength="16" placeholder="ニックネーム（空欄＝匿名）" class="text-xs rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700 sm:w-44 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+            <input id="postNickname" type="text" maxlength="16" placeholder="ニックネーム（空欄＝匿名）" class="text-xs rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2.5 text-slate-700 sm:w-44 focus:outline-none focus:ring-2 focus:ring-amber-400" />
           </div>
 
-          <div class="flex items-center justify-between sm:justify-end gap-3 pt-1 sm:pt-0">
+          <div class="flex items-center justify-between sm:justify-end gap-3 pt-0.5 sm:pt-0">
             <span id="charCount" class="text-xs text-slate-400">0 / 200</span>
-            <button id="submitPostBtn" type="submit" class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold hover:from-amber-400 hover:to-orange-400 active:scale-95 transition shadow-sm disabled:opacity-50">
-              投稿する
+            <button id="submitPostBtn" type="submit" class="post-btn px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold hover:from-amber-400 hover:to-orange-400 shadow-sm disabled:opacity-50">
+              投稿する 🚀
             </button>
           </div>
         </div>
@@ -127,7 +159,7 @@
     </section>
 
     <!-- Tag Filter Bar -->
-    <section class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5" aria-label="タグで絞り込み">
+    <section class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" aria-label="タグで絞り込み">
       <button type="button" data-filter="すべて" class="filter-chip px-3.5 py-2 rounded-full text-xs font-bold bg-slate-900 text-white whitespace-nowrap shadow-xs">すべて</button>
       <button type="button" data-filter="#将来のこと" class="filter-chip px-3.5 py-2 rounded-full text-xs font-semibold bg-white border border-amber-200/80 text-slate-700 hover:bg-amber-50 whitespace-nowrap">#将来のこと</button>
       <button type="button" data-filter="#学校・日常" class="filter-chip px-3.5 py-2 rounded-full text-xs font-semibold bg-white border border-amber-200/80 text-slate-700 hover:bg-amber-50 whitespace-nowrap">#学校・日常</button>
@@ -140,16 +172,32 @@
   </main>
 
   <!-- Mobile Floating Write Button -->
-  <button id="mobileWriteBtn" type="button" class="sm:hidden fixed bottom-5 right-5 z-40 flex items-center gap-1.5 px-4 py-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm shadow-lg active:scale-95 transition">
+  <button id="mobileWriteBtn" type="button" class="sm:hidden fixed bottom-5 right-4 z-40 flex items-center gap-1.5 px-4 py-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm shadow-lg active:scale-95 transition">
     <span>✏️</span>
     <span>本音を書く</span>
   </button>
+
+  <!-- Gentleness Filter Popup Modal -->
+  <div id="ngModal" class="hidden fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="animate-card-in bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-xl border-2 border-amber-300 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl mx-auto">
+        🛑
+      </div>
+      <div class="space-y-1.5">
+        <h3 class="font-maru text-base font-bold text-slate-900">ちょっとトゲがあるかも？</h3>
+        <p id="ngModalMsg" class="text-xs sm:text-sm text-slate-600 leading-relaxed">別の言葉にしてみよう！ここはみんなが安心して話せる「ココダケ」やで。</p>
+      </div>
+      <button id="closeNgModalBtn" type="button" class="w-full py-3 rounded-2xl bg-amber-400 text-slate-900 font-bold text-sm hover:bg-amber-300 active:scale-95 transition">
+        言葉を書き直す
+      </button>
+    </div>
+  </div>
 
   <!-- Rules Modal -->
   <div id="rulesModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-xl border border-amber-100">
       <div class="flex items-center justify-between">
-        <h3 class="font-maru text-base font-bold text-slate-900">このひみつ基地の「5つの約束」</h3>
+        <h3 class="font-maru text-base font-bold text-slate-900">ココダケの「5つの約束」</h3>
         <button id="closeRulesBtn" type="button" class="text-slate-400 hover:text-slate-700 text-sm font-bold px-2 py-1">✕</button>
       </div>
       <ol class="space-y-2.5 text-xs sm:text-sm text-slate-700 list-decimal pl-5 leading-relaxed">
@@ -214,25 +262,38 @@
         id: 'p1',
         topic_id: 't1',
         nickname: '匿名の中学生',
+        mood: '😮‍💨 疲れた',
         tag: '#将来のこと',
         content: '正直、自由に使えるお金が増えるのは楽しみやけど、「ちゃんとした大人にならなあかん」ってプレッシャーがしんどいときがある。',
+        admin_reply: 'わかるで！最初から完璧な大人なんておらんし、迷いながらで全然ええんやで。',
         created_at: new Date().toISOString()
       },
       {
         id: 'p2',
         topic_id: 't1',
         nickname: 'バスケ部1年',
+        mood: '🌟 絶好調',
         tag: '#やってみたい',
         content: '大人になったら自分の部屋を好きな音楽とかポスターでいっぱいにしたい！小さいことかもしれんけどそれが今のモチベ。',
+        admin_reply: '',
         created_at: new Date(Date.now() - 1800 * 1000).toISOString()
       }
     ];
 
     const NG_PATTERNS = [
       { word: '死ね', reason: '人を傷つける言葉' },
+      { word: 'しね', reason: '人を傷つける言葉' },
+      { word: 'キモい', reason: '人を傷つける言葉' },
       { word: 'きもい', reason: '人を傷つける言葉' },
       { word: 'うざい', reason: '人を傷つける言葉' },
+      { word: 'ウザい', reason: '人を傷つける言葉' },
       { word: 'バカ', reason: '人を傷つける言葉' },
+      { word: 'アホ', reason: '人を傷つける言葉' },
+      { word: '消えろ', reason: '人を傷つける言葉' },
+      { word: 'ブス', reason: '人を傷つける言葉' },
+      { word: 'デブ', reason: '人を傷つける言葉' },
+      { word: 'カス', reason: '人を傷つける言葉' },
+      { word: '殺す', reason: '人を傷つける言葉' },
       { word: 'line', reason: '連絡先の交換につながるワード' },
       { word: 'ライン', reason: '連絡先の交換につながるワード' },
       { word: 'discord', reason: '外部誘導につながるワード' },
@@ -260,13 +321,14 @@
       topics: [...FALLBACK_TOPICS],
       currentTopicId: 't1',
       activeFilter: 'すべて',
+      selectedMood: '🌟 絶好調',
       posts: [...FALLBACK_POSTS],
       stamps: loadSavedStamps(),
-      loading: false
+      loading: false,
+      lastCreatedId: null
     };
 
     const el = {
-      dbStatusBadge: document.getElementById('dbStatusBadge'),
       refreshBtn: document.getElementById('refreshBtn'),
       welcomeBanner: document.getElementById('welcomeBanner'),
       dismissWelcomeBtn: document.getElementById('dismissWelcomeBtn'),
@@ -274,6 +336,7 @@
       currentTopicTitle: document.getElementById('currentTopicTitle'),
       currentTopicDesc: document.getElementById('currentTopicDesc'),
       composerSection: document.getElementById('composerSection'),
+      moodSelector: document.getElementById('moodSelector'),
       postForm: document.getElementById('postForm'),
       postContent: document.getElementById('postContent'),
       postTag: document.getElementById('postTag'),
@@ -283,6 +346,9 @@
       submitPostBtn: document.getElementById('submitPostBtn'),
       feedList: document.getElementById('feedList'),
       mobileWriteBtn: document.getElementById('mobileWriteBtn'),
+      ngModal: document.getElementById('ngModal'),
+      ngModalMsg: document.getElementById('ngModalMsg'),
+      closeNgModalBtn: document.getElementById('closeNgModalBtn'),
       rulesBtn: document.getElementById('rulesBtn'),
       rulesModal: document.getElementById('rulesModal'),
       closeRulesBtn: document.getElementById('closeRulesBtn'),
@@ -368,38 +434,47 @@
 
       el.feedList.innerHTML = visiblePosts.map(post => {
         const myStamp = state.stamps[post.id] || {};
+        const isNew = state.lastCreatedId === post.id;
         return `
-          <article class="rounded-3xl bg-white border border-amber-200/70 p-4 sm:p-5 shadow-sm space-y-3">
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2 min-w-0">
+          <article class="${isNew ? 'animate-card-in' : ''} rounded-3xl bg-white border border-amber-200/70 p-4 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0 flex-wrap">
                 <div class="w-8 h-8 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-xs font-bold text-amber-900 shrink-0">
                   ${escapeHtml((post.nickname || '匿').slice(0, 1))}
                 </div>
-                <span class="text-xs sm:text-sm font-bold text-slate-800 truncate">${escapeHtml(post.nickname || '匿名の中学生')}</span>
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 shrink-0">${escapeHtml(post.tag)}</span>
+                <span class="text-xs sm:text-sm font-bold text-slate-800 truncate max-w-[130px] sm:max-w-none">${escapeHtml(post.nickname || '匿名の中学生')}</span>
+                ${post.mood ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-orange-50 text-orange-800 border border-orange-200 shrink-0">${escapeHtml(post.mood)}</span>` : ''}
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 shrink-0">${escapeHtml(post.tag)}</span>
               </div>
-              <span class="text-[11px] text-slate-400 shrink-0">${escapeHtml(formatTimeLabel(post.created_at))}</span>
+              <span class="text-[11px] text-slate-400 shrink-0 pt-1">${escapeHtml(formatTimeLabel(post.created_at))}</span>
             </div>
 
-            <p class="text-sm sm:text-[15px] text-slate-800 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.content)}</p>
+            <p class="text-[15px] text-slate-800 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.content)}</p>
+
+            ${post.admin_reply ? `
+              <div class="rounded-2xl bg-amber-50/90 border border-amber-200 px-3.5 py-2.5 space-y-1">
+                <div class="text-[11px] font-bold text-amber-900">👦 お兄ちゃんからのひとこと</div>
+                <p class="text-xs sm:text-[13px] text-slate-700 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.admin_reply)}</p>
+              </div>
+            ` : ''}
 
             <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
               <div class="flex flex-wrap items-center gap-1.5">
                 <button type="button" data-action="stamp" data-id="${escapeHtml(post.id)}" data-stamp="wakaru"
-                  class="stamp-btn px-3 py-1.5 rounded-full text-xs font-semibold border ${myStamp.wakaru ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
+                  class="stamp-btn px-3 py-2 rounded-full text-xs font-semibold border ${myStamp.wakaru ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
                   🙌 わかる！
                 </button>
                 <button type="button" data-action="stamp" data-id="${escapeHtml(post.id)}" data-stamp="ouen"
-                  class="stamp-btn px-3 py-1.5 rounded-full text-xs font-semibold border ${myStamp.ouen ? 'bg-emerald-100 border-emerald-300 text-emerald-900' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
+                  class="stamp-btn px-3 py-2 rounded-full text-xs font-semibold border ${myStamp.ouen ? 'bg-emerald-100 border-emerald-300 text-emerald-900 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
                   🌱 応援してる
                 </button>
                 <button type="button" data-action="stamp" data-id="${escapeHtml(post.id)}" data-stamp="naruhodo"
-                  class="stamp-btn px-3 py-1.5 rounded-full text-xs font-semibold border ${myStamp.naruhodo ? 'bg-sky-100 border-sky-300 text-sky-900' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
+                  class="stamp-btn px-3 py-2 rounded-full text-xs font-semibold border ${myStamp.naruhodo ? 'bg-sky-100 border-sky-300 text-sky-900 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
                   💡 なるほど
                 </button>
               </div>
 
-              <button type="button" data-action="report" data-id="${escapeHtml(post.id)}" class="text-xs text-slate-400 hover:text-slate-600 px-2.5 py-1.5 rounded-xl hover:bg-slate-100">
+              <button type="button" data-action="report" data-id="${escapeHtml(post.id)}" class="text-xs text-slate-400 hover:text-slate-600 px-2.5 py-2 rounded-xl hover:bg-slate-100">
                 相談・報告
               </button>
             </div>
@@ -423,7 +498,6 @@
 
     async function fetchAllData() {
       if (!db) {
-        el.dbStatusBadge.textContent = 'デモモード';
         renderTopics();
         renderFeed();
         return;
@@ -438,11 +512,7 @@
         if (tErr || pErr) throw tErr || pErr;
         if (topicsData && topicsData.length > 0) state.topics = topicsData;
         if (postsData) state.posts = postsData;
-        el.dbStatusBadge.textContent = 'DB接続中';
-        el.dbStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 shrink-0';
       } catch (err) {
-        el.dbStatusBadge.textContent = '接続エラー';
-        el.dbStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800 shrink-0';
         showToast('データの読み込みに失敗しました');
       } finally {
         state.loading = false;
@@ -467,6 +537,8 @@
     });
 
     el.refreshBtn.addEventListener('click', () => {
+      el.refreshBtn.classList.add('animate-pop');
+      setTimeout(() => el.refreshBtn.classList.remove('animate-pop'), 380);
       fetchAllData();
       showToast('最新の状態に更新したよ！');
     });
@@ -477,6 +549,19 @@
       renderFeed();
     });
 
+    el.moodSelector.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-mood]');
+      if (!btn) return;
+      state.selectedMood = btn.dataset.mood;
+      document.querySelectorAll('.mood-chip').forEach(b => {
+        if (b.dataset.mood === state.selectedMood) {
+          b.className = 'mood-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-amber-300 bg-amber-100 text-amber-900 whitespace-nowrap transition active:scale-95 animate-pop';
+        } else {
+          b.className = 'mood-chip px-3 py-1.5 rounded-full text-xs font-medium border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 whitespace-nowrap transition active:scale-95';
+        }
+      });
+    });
+
     el.postContent.addEventListener('input', () => {
       el.charCount.textContent = `${el.postContent.value.length} / 200`;
       el.composerAlert.classList.add('hidden');
@@ -484,18 +569,22 @@
 
     el.postForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      el.submitPostBtn.classList.add('animate-pop');
+      setTimeout(() => el.submitPostBtn.classList.remove('animate-pop'), 380);
+
       const content = el.postContent.value.trim();
       if (!content) {
         el.composerAlert.textContent = '何かひとこと書いてから投稿ボタンを押してね。';
         el.composerAlert.classList.remove('hidden');
         return;
       }
+
       const violation = checkSafety(content);
       if (violation) {
-        el.composerAlert.innerHTML = `<strong>お兄ちゃん安全フィルター：</strong>「${escapeHtml(violation.word)}」（${escapeHtml(violation.reason)}）が含まれているため投稿を止めました。言い方を変えるか、個人情報を消して試してね。`;
-        el.composerAlert.classList.remove('hidden');
+        el.ngModalMsg.textContent = `ちょっとトゲがあるかも？（「${violation.word}」：${violation.reason}） 別の言葉にしてみよう！`;
+        el.ngModal.classList.remove('hidden');
         if (db) {
-          db.from('mod_logs').insert([{ log_type: '自動ブロック', detail: `「${violation.word}」を含む投稿をブロック` }]).then(() => {});
+          db.from('mod_logs').insert([{ log_type: '優しさフィルター', detail: `「${violation.word}」を含む投稿をブロック` }]).then(() => {});
         }
         return;
       }
@@ -504,6 +593,7 @@
       const payload = {
         topic_id: state.currentTopicId,
         nickname,
+        mood: state.selectedMood,
         tag: el.postTag.value,
         content
       };
@@ -511,13 +601,30 @@
       el.submitPostBtn.disabled = true;
       try {
         if (db) {
-          const { data, error } = await db.from('posts').insert([payload]).select();
-          if (error) throw error;
-          if (data && data[0]) state.posts.unshift(data[0]);
+          let { data, error } = await db.from('posts').insert([payload]).select();
+          if (error) {
+            // Fallback in case 'mood' column has not been added to Supabase yet
+            const fallbackPayload = {
+              topic_id: payload.topic_id,
+              nickname: payload.nickname,
+              tag: payload.tag,
+              content: `${payload.mood}｜${payload.content}`
+            };
+            const retry = await db.from('posts').insert([fallbackPayload]).select();
+            if (retry.error) throw retry.error;
+            data = retry.data;
+          }
+          if (data && data[0]) {
+            state.lastCreatedId = data[0].id;
+            state.posts.unshift(data[0]);
+          }
         } else {
+          const localId = 'p' + Date.now();
+          state.lastCreatedId = localId;
           state.posts.unshift({
-            id: 'p' + Date.now(),
+            id: localId,
             ...payload,
+            admin_reply: '',
             created_at: new Date().toISOString()
           });
         }
@@ -525,9 +632,9 @@
         el.charCount.textContent = '0 / 200';
         el.composerAlert.classList.add('hidden');
         renderFeed();
-        showToast('本音をタイムラインに置いたよ！');
+        showToast('本音をココダケに置いたよ！✨');
       } catch (err) {
-        showToast('投稿の保存に失敗しました。SupabaseのRLS設定を確認してね。');
+        showToast('投稿の保存に失敗しました。少し待ってから試してね。');
       } finally {
         el.submitPostBtn.disabled = false;
       }
@@ -557,14 +664,24 @@
         state.stamps[id][stamp] = !state.stamps[id][stamp];
         saveStamps(state.stamps);
         renderFeed();
+        const updatedBtn = el.feedList.querySelector(`button[data-id="${CSS.escape(id)}"][data-stamp="${CSS.escape(stamp)}"]`);
+        if (updatedBtn) {
+          updatedBtn.classList.add('animate-pop');
+          setTimeout(() => updatedBtn.classList.remove('animate-pop'), 380);
+        }
         if (state.stamps[id][stamp]) {
-          showToast('共感スタンプを送ったよ（数字は表示されません）');
+          showToast('共感スタンプを送ったよ✨');
         }
       } else if (action === 'report') {
         el.reportTargetId.value = id;
         el.reportReason.value = '';
         el.reportModal.classList.remove('hidden');
       }
+    });
+
+    el.closeNgModalBtn.addEventListener('click', () => {
+      el.ngModal.classList.add('hidden');
+      el.postContent.focus();
     });
 
     el.rulesBtn.addEventListener('click', () => el.rulesModal.classList.remove('hidden'));
