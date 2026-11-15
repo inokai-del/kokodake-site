@@ -12,15 +12,42 @@
   <style>
     body {
       font-family: 'Inter', 'Noto Sans JP', sans-serif;
-      background-color: #fffbf2;
-      background-image: radial-gradient(#fde68a 0.75px, transparent 0.75px);
-      background-size: 20px 20px;
-      color: #1e293b;
       padding-bottom: env(safe-area-inset-bottom);
       -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    body.theme-day {
+      background-color: #fffbf2;
+      background-image: radial-gradient(#fde68a 0.8px, transparent 0.8px);
+      background-size: 20px 20px;
+      color: #1e293b;
+    }
+    body.theme-night {
+      background-color: #172033;
+      background-image: radial-gradient(rgba(253, 230, 138, 0.28) 1px, transparent 1px);
+      background-size: 28px 28px;
+      color: #f8fafc;
     }
     .font-maru {
       font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+    }
+    .sticky-note {
+      position: relative;
+      border-top-right-radius: 4px;
+    }
+    .sticky-note::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 18px;
+      height: 18px;
+      background: linear-gradient(225deg, #f1f5f9 50%, #e2e8f0 50%);
+      border-bottom-left-radius: 6px;
+      pointer-events: none;
+    }
+    body.theme-night .sticky-note::after {
+      background: linear-gradient(225deg, #172033 50%, #cbd5e1 50%);
     }
     @keyframes popBounce {
       0% { transform: scale(1); }
@@ -29,7 +56,7 @@
       100% { transform: scale(1); }
     }
     @keyframes floatUpFade {
-      0% { opacity: 0; transform: translateY(6px) scale(0.96); }
+      0% { opacity: 0; transform: translateY(8px) scale(0.96); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
     }
     .animate-pop {
@@ -39,13 +66,13 @@
       animation: floatUpFade 0.28s ease-out;
     }
     .stamp-btn {
-      transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, border-color 0.15s ease;
     }
     .stamp-btn:active {
       transform: scale(0.9);
     }
     .post-btn {
-      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease, filter 0.16s ease;
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease;
     }
     .post-btn:active {
       transform: scale(0.94);
@@ -59,19 +86,19 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="theme-day min-h-screen flex flex-col">
   <!-- Header -->
-  <header class="sticky top-0 z-30 bg-[#fffbf2]/95 backdrop-blur-md border-b border-amber-200/70">
+  <header id="appHeader" class="sticky top-0 z-30 bg-[#fffbf2]/95 backdrop-blur-md border-b border-amber-200/70 transition-colors">
     <div class="max-w-xl mx-auto px-3.5 sm:px-4 py-2.5 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white shadow-sm shrink-0">
+        <div id="logoBadge" class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white shadow-sm shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
         </div>
         <div class="min-w-0">
-          <h1 class="font-maru text-lg font-bold tracking-tight text-slate-900 truncate leading-tight">ココダケ</h1>
-          <p class="text-[11px] text-slate-500 truncate">正解もいいね数もない、放課後のひみつ基地</p>
+          <h1 id="headerTitle" class="font-maru text-lg font-bold tracking-tight text-slate-900 truncate leading-tight">ココダケ</h1>
+          <p id="skySubtitle" class="text-[11px] text-slate-500 truncate">☀️ 放課後のひみつ基地</p>
         </div>
       </div>
 
@@ -100,8 +127,8 @@
       <button id="dismissWelcomeBtn" type="button" class="text-xs text-slate-400 hover:text-slate-700 px-1.5 py-0.5 shrink-0" aria-label="閉じる">✕</button>
     </section>
 
-    <!-- Weekly Prompt Banner -->
-    <section class="rounded-3xl bg-gradient-to-br from-amber-100/90 via-orange-50 to-rose-50 border border-amber-200/80 p-4 shadow-sm space-y-2">
+    <!-- Weekly Prompt Banner + Topic Filter -->
+    <section class="rounded-3xl bg-gradient-to-br from-amber-100/95 via-orange-50 to-rose-50 border border-amber-200/80 p-4 shadow-sm space-y-2.5 text-slate-900">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/90 text-amber-900 border border-amber-200">
           <span>✉️ 今週のお兄ちゃんからのお題</span>
@@ -110,10 +137,17 @@
       </div>
       <h2 id="currentTopicTitle" class="font-maru text-base sm:text-lg font-bold text-slate-900 leading-snug"></h2>
       <p id="currentTopicDesc" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
+
+      <div class="pt-1 flex flex-wrap items-center justify-between gap-2 border-t border-amber-200/60">
+        <span id="topicCountLabel" class="text-xs font-semibold text-amber-900">このお題の答え：0件</span>
+        <button id="toggleAllTopicsBtn" type="button" class="px-3 py-1.5 rounded-full text-xs font-bold bg-white/90 border border-amber-300 text-amber-900 hover:bg-white active:scale-95 transition">
+          すべてのお題の答えを見る
+        </button>
+      </div>
     </section>
 
     <!-- Post Composer -->
-    <section id="composerSection" class="rounded-3xl bg-white border border-amber-200/80 p-4 shadow-sm">
+    <section id="composerSection" class="rounded-3xl bg-white border border-amber-200/80 p-4 shadow-sm text-slate-900">
       <form id="postForm" class="space-y-3">
         <div class="flex items-center justify-between gap-2">
           <span class="font-maru text-sm font-bold text-slate-800">✏️ 本音をポンと置いてみる</span>
@@ -133,29 +167,55 @@
           </div>
         </div>
 
+        <!-- Stance Selector (Listen vs Advice) -->
+        <div class="space-y-1.5">
+          <div class="text-[11px] font-semibold text-slate-500">どんなふうに読んでほしい？</div>
+          <div id="stanceSelector" class="grid grid-cols-2 gap-2">
+            <button type="button" data-stance="🟢 ただ聞いてほしい" class="stance-chip px-3 py-2 rounded-xl text-xs font-bold border border-emerald-300 bg-emerald-50 text-emerald-900 transition active:scale-95">
+              🟢 ただ聞いてほしい
+            </button>
+            <button type="button" data-stance="🔵 みんなの意見も知りたい" class="stance-chip px-3 py-2 rounded-xl text-xs font-medium border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition active:scale-95">
+              🔵 意見も知りたい
+            </button>
+          </div>
+        </div>
+
         <textarea id="postContent" rows="3" maxlength="200" placeholder="ここに思ったことをそのまま書いてみて（200文字まで）。誰が書いたかの履歴は残らへんよ。" class="w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-3.5 py-3 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-none"></textarea>
 
         <div id="composerAlert" class="hidden rounded-2xl bg-rose-50 border border-rose-200 px-3.5 py-2.5 text-xs text-rose-800 leading-relaxed"></div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div class="grid grid-cols-2 sm:flex sm:items-center gap-2">
-            <select id="postTag" aria-label="タグを選択" class="text-xs rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-amber-400">
-              <option value="#将来のこと">#将来のこと</option>
-              <option value="#学校・日常">#学校・日常</option>
-              <option value="#モヤモヤ">#モヤモヤ</option>
-              <option value="#やってみたい">#やってみたい</option>
-            </select>
-            <input id="postNickname" type="text" maxlength="16" placeholder="ニックネーム（空欄＝匿名）" class="text-xs rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2.5 text-slate-700 sm:w-44 focus:outline-none focus:ring-2 focus:ring-amber-400" />
-          </div>
+        <div class="grid grid-cols-2 sm:flex sm:items-center gap-2">
+          <select id="postTag" aria-label="タグを選択" class="text-xs rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <option value="#将来のこと">#将来のこと</option>
+            <option value="#学校・日常">#学校・日常</option>
+            <option value="#モヤモヤ">#モヤモヤ</option>
+            <option value="#やってみたい">#やってみたい</option>
+          </select>
+          <input id="postNickname" type="text" maxlength="16" placeholder="ニックネーム（空欄＝匿名）" class="text-xs rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2.5 text-slate-700 sm:flex-1 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          <span id="charCount" class="hidden sm:inline text-xs text-slate-400 shrink-0">0 / 200</span>
+        </div>
 
-          <div class="flex items-center justify-between sm:justify-end gap-3 pt-0.5 sm:pt-0">
-            <span id="charCount" class="text-xs text-slate-400">0 / 200</span>
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+          <button id="savePrivateBtn" type="button" class="px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-semibold hover:bg-slate-100 active:scale-95 transition">
+            🔒 今日はまだしまっておく
+          </button>
+          <div class="flex items-center gap-2 ml-auto">
+            <span id="charCountMobile" class="sm:hidden text-xs text-slate-400">0 / 200</span>
             <button id="submitPostBtn" type="submit" class="post-btn px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold hover:from-amber-400 hover:to-orange-400 shadow-sm disabled:opacity-50">
               投稿する 🚀
             </button>
           </div>
         </div>
       </form>
+    </section>
+
+    <!-- Private Notes Drawer (ひとりごと) -->
+    <section id="privateNotesSection" class="rounded-2xl bg-white/95 border border-indigo-200 p-3.5 shadow-xs text-slate-900">
+      <button id="togglePrivateBtn" type="button" class="w-full flex items-center justify-between text-xs font-bold text-indigo-950">
+        <span>🔒 自分だけのひとりごと（<span id="privateCount">0</span>件）</span>
+        <span id="privateArrow" class="text-indigo-500">ひらく ▼</span>
+      </button>
+      <div id="privateNotesList" class="hidden mt-3 space-y-2 border-t border-indigo-100 pt-2.5"></div>
     </section>
 
     <!-- Tag Filter Bar -->
@@ -169,6 +229,17 @@
 
     <!-- Timeline Feed -->
     <section id="feedList" class="space-y-3" aria-live="polite"></section>
+
+    <!-- Footer SOS Link -->
+    <footer class="pt-4 pb-2 text-center space-y-1.5">
+      <p id="footerText" class="text-xs text-slate-500 leading-relaxed">
+        どうしてもつらい時は、プロの大人にも頼れるよ。
+      </p>
+      <a href="https://childline.or.jp/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/90 border border-teal-200 text-xs font-semibold text-teal-800 hover:bg-teal-50 transition shadow-xs">
+        <span>📞</span>
+        <span>チャイルドライン（18歳までの無料電話・チャット相談）</span>
+      </a>
+    </footer>
   </main>
 
   <!-- Mobile Floating Write Button -->
@@ -177,9 +248,18 @@
     <span>本音を書く</span>
   </button>
 
+  <!-- Thank-You Overlay (1.5s gentle feedback) -->
+  <div id="thankYouOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/35 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
+    <div class="animate-card-in bg-white rounded-3xl px-6 py-5 shadow-2xl border-2 border-amber-300 text-center space-y-1.5 max-w-xs w-full text-slate-900">
+      <div class="text-2xl">✨</div>
+      <p class="font-maru text-sm sm:text-base font-bold text-slate-900">受け取ったよ。</p>
+      <p class="text-xs text-slate-600">置いてくれてありがとう！</p>
+    </div>
+  </div>
+
   <!-- Gentleness Filter Popup Modal -->
   <div id="ngModal" class="hidden fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="animate-card-in bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-xl border-2 border-amber-300 text-center">
+    <div class="animate-card-in bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-xl border-2 border-amber-300 text-center text-slate-900">
       <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl mx-auto">
         🛑
       </div>
@@ -195,7 +275,7 @@
 
   <!-- Rules Modal -->
   <div id="rulesModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-xl border border-amber-100">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-xl border border-amber-100 text-slate-900">
       <div class="flex items-center justify-between">
         <h3 class="font-maru text-base font-bold text-slate-900">ココダケの「5つの約束」</h3>
         <button id="closeRulesBtn" type="button" class="text-slate-400 hover:text-slate-700 text-sm font-bold px-2 py-1">✕</button>
@@ -207,6 +287,12 @@
         <li><strong>スクショして外に出さない</strong>：ここだけの本音を守るため、SNS等への転載は禁止。</li>
         <li><strong>困ったら「相談」を押す</strong>：少しでも嫌な投稿があれば、お兄ちゃんに知らせてね。</li>
       </ol>
+      <div class="rounded-2xl bg-teal-50 border border-teal-200 p-3 text-xs text-teal-900 leading-relaxed">
+        どうしてもつらい時は、プロの大人にも頼れるよ：
+        <a href="https://childline.or.jp/" target="_blank" rel="noopener noreferrer" class="underline font-bold text-teal-800 hover:text-teal-600">
+          チャイルドライン（18歳までの無料電話・チャット相談）
+        </a>
+      </div>
       <button id="agreeRulesBtn" type="button" class="w-full py-3 rounded-2xl bg-amber-400 text-slate-900 font-bold text-sm hover:bg-amber-300 active:scale-95 transition">
         わかった！
       </button>
@@ -215,7 +301,7 @@
 
   <!-- Report / Consult Modal -->
   <div id="reportModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-xl border border-rose-100">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-xl border border-rose-100 text-slate-900">
       <div class="flex items-center justify-between">
         <h3 class="font-maru text-base font-bold text-slate-900">お兄ちゃんに報告・相談する</h3>
         <button id="closeReportBtn" type="button" class="text-slate-400 hover:text-slate-700 text-sm font-bold px-2 py-1">✕</button>
@@ -263,7 +349,8 @@
         topic_id: 't1',
         nickname: '匿名の中学生',
         mood: '😮‍💨 疲れた',
-        tag: '#将来のこと',
+        stance: '🟢 ただ聞いてほしい',
+        tag: '#モヤモヤ',
         content: '正直、自由に使えるお金が増えるのは楽しみやけど、「ちゃんとした大人にならなあかん」ってプレッシャーがしんどいときがある。',
         admin_reply: 'わかるで！最初から完璧な大人なんておらんし、迷いながらで全然ええんやで。',
         created_at: new Date().toISOString()
@@ -273,12 +360,20 @@
         topic_id: 't1',
         nickname: 'バスケ部1年',
         mood: '🌟 絶好調',
+        stance: '🔵 みんなの意見も知りたい',
         tag: '#やってみたい',
         content: '大人になったら自分の部屋を好きな音楽とかポスターでいっぱいにしたい！小さいことかもしれんけどそれが今のモチベ。',
         admin_reply: '',
         created_at: new Date(Date.now() - 1800 * 1000).toISOString()
       }
     ];
+
+    const TAG_BORDER_MAP = {
+      '#将来のこと': 'border-l-sky-400',
+      '#学校・日常': 'border-l-emerald-400',
+      '#モヤモヤ': 'border-l-purple-400',
+      '#やってみたい': 'border-l-orange-400'
+    };
 
     const NG_PATTERNS = [
       { word: '死ね', reason: '人を傷つける言葉' },
@@ -301,17 +396,17 @@
       { word: '中学校', reason: '学校名など個人特定の可能性' }
     ];
 
-    function loadSavedStamps() {
+    function loadJsonStorage(key, fallback) {
       try {
-        return JSON.parse(localStorage.getItem('kodomo_stamps') || '{}');
+        return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
       } catch {
-        return {};
+        return fallback;
       }
     }
 
-    function saveStamps(map) {
+    function saveJsonStorage(key, val) {
       try {
-        localStorage.setItem('kodomo_stamps', JSON.stringify(map));
+        localStorage.setItem(key, JSON.stringify(val));
       } catch {
         // ignore storage errors
       }
@@ -320,32 +415,50 @@
     const state = {
       topics: [...FALLBACK_TOPICS],
       currentTopicId: 't1',
+      showAllTopics: false,
       activeFilter: 'すべて',
       selectedMood: '🌟 絶好調',
+      selectedStance: '🟢 ただ聞いてほしい',
       posts: [...FALLBACK_POSTS],
-      stamps: loadSavedStamps(),
+      stamps: loadJsonStorage('kodomo_stamps', {}),
+      privateNotes: loadJsonStorage('kokodake_private_notes', []),
+      privateOpen: false,
       loading: false,
       lastCreatedId: null
     };
 
     const el = {
+      appHeader: document.getElementById('appHeader'),
+      headerTitle: document.getElementById('headerTitle'),
+      skySubtitle: document.getElementById('skySubtitle'),
+      footerText: document.getElementById('footerText'),
       refreshBtn: document.getElementById('refreshBtn'),
       welcomeBanner: document.getElementById('welcomeBanner'),
       dismissWelcomeBtn: document.getElementById('dismissWelcomeBtn'),
       topicSelect: document.getElementById('topicSelect'),
       currentTopicTitle: document.getElementById('currentTopicTitle'),
       currentTopicDesc: document.getElementById('currentTopicDesc'),
+      topicCountLabel: document.getElementById('topicCountLabel'),
+      toggleAllTopicsBtn: document.getElementById('toggleAllTopicsBtn'),
       composerSection: document.getElementById('composerSection'),
       moodSelector: document.getElementById('moodSelector'),
+      stanceSelector: document.getElementById('stanceSelector'),
       postForm: document.getElementById('postForm'),
       postContent: document.getElementById('postContent'),
       postTag: document.getElementById('postTag'),
       postNickname: document.getElementById('postNickname'),
       charCount: document.getElementById('charCount'),
+      charCountMobile: document.getElementById('charCountMobile'),
       composerAlert: document.getElementById('composerAlert'),
+      savePrivateBtn: document.getElementById('savePrivateBtn'),
       submitPostBtn: document.getElementById('submitPostBtn'),
+      togglePrivateBtn: document.getElementById('togglePrivateBtn'),
+      privateCount: document.getElementById('privateCount'),
+      privateArrow: document.getElementById('privateArrow'),
+      privateNotesList: document.getElementById('privateNotesList'),
       feedList: document.getElementById('feedList'),
       mobileWriteBtn: document.getElementById('mobileWriteBtn'),
+      thankYouOverlay: document.getElementById('thankYouOverlay'),
       ngModal: document.getElementById('ngModal'),
       ngModalMsg: document.getElementById('ngModalMsg'),
       closeNgModalBtn: document.getElementById('closeNgModalBtn'),
@@ -368,6 +481,33 @@
       el.toast.classList.remove('hidden');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => el.toast.classList.add('hidden'), 2800);
+    }
+
+    function showThankYouOverlay() {
+      el.thankYouOverlay.classList.remove('hidden');
+      setTimeout(() => el.thankYouOverlay.classList.add('hidden'), 1500);
+    }
+
+    function applySkyTheme() {
+      const hour = new Date().getHours();
+      const isNight = hour >= 20 || hour < 6;
+      if (isNight) {
+        document.body.classList.remove('theme-day');
+        document.body.classList.add('theme-night');
+        el.appHeader.className = 'sticky top-0 z-30 bg-[#172033]/90 backdrop-blur-md border-b border-slate-700/80 transition-colors';
+        el.headerTitle.className = 'font-maru text-lg font-bold tracking-tight text-white truncate leading-tight';
+        el.skySubtitle.className = 'text-[11px] text-amber-200/90 truncate';
+        el.skySubtitle.textContent = '🌙 夜のひみつ基地（20時〜朝）';
+        el.footerText.className = 'text-xs text-slate-300 leading-relaxed';
+      } else {
+        document.body.classList.remove('theme-night');
+        document.body.classList.add('theme-day');
+        el.appHeader.className = 'sticky top-0 z-30 bg-[#fffbf2]/95 backdrop-blur-md border-b border-amber-200/70 transition-colors';
+        el.headerTitle.className = 'font-maru text-lg font-bold tracking-tight text-slate-900 truncate leading-tight';
+        el.skySubtitle.className = 'text-[11px] text-slate-500 truncate';
+        el.skySubtitle.textContent = hour >= 16 ? '🌆 放課後のひみつ基地' : '☀️ 昼のひみつ基地';
+        el.footerText.className = 'text-xs text-slate-500 leading-relaxed';
+      }
     }
 
     function escapeHtml(str) {
@@ -409,6 +549,45 @@
       const current = state.topics.find(t => t.id === state.currentTopicId) || state.topics[0];
       el.currentTopicTitle.textContent = current.title;
       el.currentTopicDesc.textContent = current.desc;
+
+      const countForCurrent = state.posts.filter(p => p.topic_id === state.currentTopicId).length;
+      el.topicCountLabel.textContent = state.showAllTopics
+        ? `すべてのお題の答え：${state.posts.length}件`
+        : `このお題の答え：${countForCurrent}件`;
+      el.toggleAllTopicsBtn.textContent = state.showAllTopics
+        ? 'このお題の答えだけ見る'
+        : 'すべてのお題の答えを見る';
+    }
+
+    function renderPrivateNotes() {
+      el.privateCount.textContent = String(state.privateNotes.length);
+      el.privateArrow.textContent = state.privateOpen ? 'とじる ▲' : 'ひらく ▼';
+      if (!state.privateOpen) {
+        el.privateNotesList.classList.add('hidden');
+        return;
+      }
+      el.privateNotesList.classList.remove('hidden');
+      if (state.privateNotes.length === 0) {
+        el.privateNotesList.innerHTML = '<p class="text-xs text-slate-500">まだしまったメモはありません。「🔒 今日はまだしまっておく」で自分だけに残せるよ。</p>';
+        return;
+      }
+      el.privateNotesList.innerHTML = state.privateNotes.map(note => `
+        <div class="rounded-xl bg-indigo-50/70 border border-indigo-100 p-3 space-y-2">
+          <div class="flex items-center justify-between gap-2 text-[11px] text-indigo-800">
+            <span>${escapeHtml(note.mood || '')} ${escapeHtml(note.tag || '')}</span>
+            <span>${escapeHtml(note.savedAt || '')}</span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(note.content)}</p>
+          <div class="flex items-center justify-end gap-2">
+            <button type="button" data-private-action="load" data-note-id="${escapeHtml(note.id)}" class="px-2.5 py-1 rounded-lg bg-white border border-indigo-200 text-[11px] font-semibold text-indigo-800 hover:bg-indigo-100">
+              投稿欄に出す
+            </button>
+            <button type="button" data-private-action="remove" data-note-id="${escapeHtml(note.id)}" class="px-2.5 py-1 rounded-lg text-[11px] text-slate-500 hover:text-rose-600">
+              消す
+            </button>
+          </div>
+        </div>
+      `).join('');
     }
 
     function renderFeed() {
@@ -417,14 +596,14 @@
         return;
       }
       const visiblePosts = state.posts.filter(p => {
-        const matchTopic = p.topic_id === state.currentTopicId;
+        const matchTopic = state.showAllTopics || p.topic_id === state.currentTopicId;
         const matchTag = state.activeFilter === 'すべて' || p.tag === state.activeFilter;
         return matchTopic && matchTag;
       });
 
       if (visiblePosts.length === 0) {
         el.feedList.innerHTML = `
-          <div class="rounded-3xl bg-white border border-dashed border-amber-300 p-8 text-center space-y-1.5">
+          <div class="rounded-3xl bg-white border border-dashed border-amber-300 p-8 text-center space-y-1.5 text-slate-800">
             <div class="font-maru text-sm font-bold text-slate-700">この条件の投稿はまだありません</div>
             <p class="text-xs text-slate-500">最初の一言をポンと置いてみてな！</p>
           </div>
@@ -432,22 +611,35 @@
         return;
       }
 
+      const topicTitleMap = Object.fromEntries(state.topics.map(t => [t.id, t.title]));
+
       el.feedList.innerHTML = visiblePosts.map(post => {
         const myStamp = state.stamps[post.id] || {};
         const isNew = state.lastCreatedId === post.id;
+        const leftBand = TAG_BORDER_MAP[post.tag] || 'border-l-amber-400';
+        const topicBadge = state.showAllTopics && topicTitleMap[post.topic_id]
+          ? `<div class="text-[11px] text-slate-500 bg-slate-50 rounded-lg px-2.5 py-1 border border-slate-100 truncate">お題：${escapeHtml(topicTitleMap[post.topic_id])}</div>`
+          : '';
         return `
-          <article class="${isNew ? 'animate-card-in' : ''} rounded-3xl bg-white border border-amber-200/70 p-4 shadow-sm space-y-3">
-            <div class="flex items-start justify-between gap-2">
-              <div class="flex items-center gap-2 min-w-0 flex-wrap">
-                <div class="w-8 h-8 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-xs font-bold text-amber-900 shrink-0">
+          <article class="${isNew ? 'animate-card-in' : ''} sticky-note rounded-2xl bg-white border border-slate-200/90 border-l-[6px] ${leftBand} p-4 shadow-sm space-y-2.5 text-slate-900">
+            ${topicBadge}
+            <div class="flex items-start justify-between gap-2 pr-3">
+              <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
+                <div class="w-7 h-7 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-xs font-bold text-amber-900 shrink-0">
                   ${escapeHtml((post.nickname || '匿').slice(0, 1))}
                 </div>
-                <span class="text-xs sm:text-sm font-bold text-slate-800 truncate max-w-[130px] sm:max-w-none">${escapeHtml(post.nickname || '匿名の中学生')}</span>
+                <span class="text-xs sm:text-sm font-bold text-slate-800 truncate max-w-[120px] sm:max-w-none">${escapeHtml(post.nickname || '匿名の中学生')}</span>
                 ${post.mood ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-orange-50 text-orange-800 border border-orange-200 shrink-0">${escapeHtml(post.mood)}</span>` : ''}
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 shrink-0">${escapeHtml(post.tag)}</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 shrink-0">${escapeHtml(post.tag)}</span>
               </div>
-              <span class="text-[11px] text-slate-400 shrink-0 pt-1">${escapeHtml(formatTimeLabel(post.created_at))}</span>
+              <span class="text-[11px] text-slate-400 shrink-0 pt-0.5">${escapeHtml(formatTimeLabel(post.created_at))}</span>
             </div>
+
+            ${post.stance ? `
+              <div>
+                <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold ${post.stance.includes('聞いて') ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-sky-50 text-sky-800 border border-sky-200'}">${escapeHtml(post.stance)}</span>
+              </div>
+            ` : ''}
 
             <p class="text-[15px] text-slate-800 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.content)}</p>
 
@@ -545,6 +737,13 @@
 
     el.topicSelect.addEventListener('change', (e) => {
       state.currentTopicId = e.target.value;
+      state.showAllTopics = false;
+      renderTopics();
+      renderFeed();
+    });
+
+    el.toggleAllTopicsBtn.addEventListener('click', () => {
+      state.showAllTopics = !state.showAllTopics;
       renderTopics();
       renderFeed();
     });
@@ -562,9 +761,80 @@
       });
     });
 
+    el.stanceSelector.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-stance]');
+      if (!btn) return;
+      state.selectedStance = btn.dataset.stance;
+      document.querySelectorAll('.stance-chip').forEach(b => {
+        if (b.dataset.stance === state.selectedStance) {
+          const isListen = state.selectedStance.includes('聞いて');
+          b.className = isListen
+            ? 'stance-chip px-3 py-2 rounded-xl text-xs font-bold border border-emerald-300 bg-emerald-50 text-emerald-900 transition active:scale-95 animate-pop'
+            : 'stance-chip px-3 py-2 rounded-xl text-xs font-bold border border-sky-300 bg-sky-50 text-sky-900 transition active:scale-95 animate-pop';
+        } else {
+          b.className = 'stance-chip px-3 py-2 rounded-xl text-xs font-medium border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition active:scale-95';
+        }
+      });
+    });
+
     el.postContent.addEventListener('input', () => {
-      el.charCount.textContent = `${el.postContent.value.length} / 200`;
+      const len = el.postContent.value.length;
+      el.charCount.textContent = `${len} / 200`;
+      el.charCountMobile.textContent = `${len} / 200`;
       el.composerAlert.classList.add('hidden');
+    });
+
+    el.savePrivateBtn.addEventListener('click', () => {
+      const content = el.postContent.value.trim();
+      if (!content) {
+        el.composerAlert.textContent = 'しまっておきたい言葉を何か書いてみてね。';
+        el.composerAlert.classList.remove('hidden');
+        return;
+      }
+      const d = new Date();
+      const savedAt = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      state.privateNotes.unshift({
+        id: 'priv_' + Date.now(),
+        content,
+        mood: state.selectedMood,
+        tag: el.postTag.value,
+        savedAt
+      });
+      saveJsonStorage('kokodake_private_notes', state.privateNotes);
+      el.postContent.value = '';
+      el.charCount.textContent = '0 / 200';
+      el.charCountMobile.textContent = '0 / 200';
+      state.privateOpen = true;
+      renderPrivateNotes();
+      showToast('自分だけのひとりごとにしまったよ🔒');
+    });
+
+    el.togglePrivateBtn.addEventListener('click', () => {
+      state.privateOpen = !state.privateOpen;
+      renderPrivateNotes();
+    });
+
+    el.privateNotesList.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-private-action]');
+      if (!btn) return;
+      const action = btn.dataset.privateAction;
+      const noteId = btn.dataset.noteId;
+      const note = state.privateNotes.find(n => n.id === noteId);
+      if (!note) return;
+
+      if (action === 'load') {
+        el.postContent.value = note.content;
+        el.charCount.textContent = `${note.content.length} / 200`;
+        el.charCountMobile.textContent = `${note.content.length} / 200`;
+        if (note.tag) el.postTag.value = note.tag;
+        el.composerSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => el.postContent.focus(), 250);
+      } else if (action === 'remove') {
+        state.privateNotes = state.privateNotes.filter(n => n.id !== noteId);
+        saveJsonStorage('kokodake_private_notes', state.privateNotes);
+        renderPrivateNotes();
+        showToast('ひとりごとを消したよ');
+      }
     });
 
     el.postForm.addEventListener('submit', async (e) => {
@@ -594,6 +864,7 @@
         topic_id: state.currentTopicId,
         nickname,
         mood: state.selectedMood,
+        stance: state.selectedStance,
         tag: el.postTag.value,
         content
       };
@@ -603,14 +874,15 @@
         if (db) {
           let { data, error } = await db.from('posts').insert([payload]).select();
           if (error) {
-            // Fallback in case 'mood' column has not been added to Supabase yet
-            const fallbackPayload = {
+            // Fallback if 'stance' or 'mood' column has not been added yet
+            const retryPayload = {
               topic_id: payload.topic_id,
               nickname: payload.nickname,
+              mood: payload.mood,
               tag: payload.tag,
-              content: `${payload.mood}｜${payload.content}`
+              content: `${payload.stance}\n${payload.content}`
             };
-            const retry = await db.from('posts').insert([fallbackPayload]).select();
+            const retry = await db.from('posts').insert([retryPayload]).select();
             if (retry.error) throw retry.error;
             data = retry.data;
           }
@@ -630,9 +902,11 @@
         }
         el.postContent.value = '';
         el.charCount.textContent = '0 / 200';
+        el.charCountMobile.textContent = '0 / 200';
         el.composerAlert.classList.add('hidden');
+        renderTopics();
         renderFeed();
-        showToast('本音をココダケに置いたよ！✨');
+        showThankYouOverlay();
       } catch (err) {
         showToast('投稿の保存に失敗しました。少し待ってから試してね。');
       } finally {
@@ -662,7 +936,7 @@
       if (action === 'stamp' && stamp) {
         if (!state.stamps[id]) state.stamps[id] = {};
         state.stamps[id][stamp] = !state.stamps[id][stamp];
-        saveStamps(state.stamps);
+        saveJsonStorage('kodomo_stamps', state.stamps);
         renderFeed();
         const updatedBtn = el.feedList.querySelector(`button[data-id="${CSS.escape(id)}"][data-stamp="${CSS.escape(stamp)}"]`);
         if (updatedBtn) {
@@ -703,7 +977,9 @@
     });
 
     // Init
+    applySkyTheme();
     initWelcomeBanner();
+    renderPrivateNotes();
     fetchAllData();
   </script>
 </body>
