@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>子供になりたい｜中学生の本音タイムライン（プロトタイプ）</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .stamp-btn {
+      transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .stamp-btn:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-amber-400 flex items-center justify-center text-white font-bold shadow-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-tight">子供になりたい</h1>
+          <p class="text-xs text-slate-500">数字も古参もない、中学生のフラットな本音ポスト</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="rulesBtn" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition">
+          5つの約束
+        </button>
+        <div class="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200" role="group" aria-label="表示モード切替">
+          <button id="studentModeBtn" type="button" class="px-2.5 py-1 text-xs font-semibold rounded-md bg-white text-slate-900 shadow-sm transition">
+            中学生ビュー
+          </button>
+          <button id="adminModeBtn" type="button" class="px-2.5 py-1 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 transition">
+            運営ビュー
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-3xl w-full mx-auto px-4 py-5 space-y-5">
+    <!-- Weekly Prompt Banner -->
+    <section class="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 p-4 sm:p-5 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-200/80 text-amber-900">
+          <span>今週のお兄ちゃんからのお題</span>
+        </span>
+        <div class="flex items-center gap-1.5">
+          <label for="topicSelect" class="text-xs text-slate-600">お題を切り替え:</label>
+          <select id="topicSelect" class="text-xs bg-white border border-amber-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400"></select>
+        </div>
+      </div>
+      <h2 id="currentTopicTitle" class="text-base sm:text-lg font-bold text-slate-900 mb-1"></h2>
+      <p id="currentTopicDesc" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
+    </section>
+
+    <!-- Admin Panel (Hidden in Student View) -->
+    <section id="adminPanel" class="hidden rounded-2xl bg-slate-900 text-slate-100 p-4 sm:p-5 space-y-4 shadow-md">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h3 class="text-sm sm:text-base font-bold text-amber-300">運営（お兄ちゃん）管理パネル</h3>
+          <p class="text-xs text-slate-300">自動フィルターで止めた投稿や報告、新しいお題の追加をここで管理できます。</p>
+        </div>
+        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 border border-slate-700 text-emerald-300">安全フィルター稼働中</span>
+      </div>
+
+      <!-- Add New Topic -->
+      <form id="addTopicForm" class="bg-slate-800/80 rounded-xl p-3.5 space-y-2.5 border border-slate-700">
+        <div class="text-xs font-semibold text-slate-200">新しい「今週のお題」を追加</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input id="newTopicTitleInput" type="text" placeholder="お題タイトル（例：大人に言われてモヤっとしたこと）" class="w-full px-3 py-2 text-xs rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          <input id="newTopicDescInput" type="text" placeholder="補足メッセージ（例：正解はないから素直に書いてみて！）" class="w-full px-3 py-2 text-xs rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-400 text-slate-900 hover:bg-amber-300 transition">
+            お題を追加して切り替える
+          </button>
+        </div>
+      </form>
+
+      <!-- Blocked / Reported Logs -->
+      <div class="bg-slate-800/80 rounded-xl p-3.5 border border-slate-700 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-200">自動ブロック・相談ログ</span>
+          <span id="logCountBadge" class="text-xs text-slate-400">0件</span>
+        </div>
+        <div id="adminLogList" class="space-y-2 max-h-48 overflow-y-auto text-xs"></div>
+      </div>
+    </section>
+
+    <!-- Post Composer -->
+    <section class="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 shadow-sm">
+      <form id="postForm" class="space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-sm font-bold text-slate-800">本音をポンと置いてみる</span>
+          <span class="text-xs text-slate-500">※いいね数やフォロワーは表示されません</span>
+        </div>
+
+        <textarea id="postContent" rows="3" maxlength="200" placeholder="ここに思ったことをそのまま書いてみて（200文字まで）。誰が書いたかの履歴は残らへんよ。" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-none"></textarea>
+
+        <div id="composerAlert" class="hidden rounded-xl bg-rose-50 border border-rose-200 px-3.5 py-2.5 text-xs text-rose-800"></div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="postTag" aria-label="タグを選択" class="text-xs rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400">
+              <option value="#将来のこと">#将来のこと</option>
+              <option value="#学校・日常">#学校・日常</option>
+              <option value="#モヤモヤ">#モヤモヤ</option>
+              <option value="#やってみたい">#やってみたい</option>
+            </select>
+            <input id="postNickname" type="text" maxlength="16" placeholder="ニックネーム（空欄なら匿名）" class="text-xs rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 text-slate-700 w-44 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          </div>
+
+          <div class="flex items-center gap-3 ml-auto">
+            <span id="charCount" class="text-xs text-slate-400">0 / 200</span>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-semibold hover:bg-slate-800 transition shadow-sm">
+              投稿する
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Tag Filter Bar -->
+    <section class="flex items-center gap-2 overflow-x-auto pb-1" aria-label="タグで絞り込み">
+      <button type="button" data-filter="すべて" class="filter-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-white whitespace-nowrap">すべて</button>
+      <button type="button" data-filter="#将来のこと" class="filter-chip px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 whitespace-nowrap">#将来のこと</button>
+      <button type="button" data-filter="#学校・日常" class="filter-chip px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 whitespace-nowrap">#学校・日常</button>
+      <button type="button" data-filter="#モヤモヤ" class="filter-chip px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 whitespace-nowrap">#モヤモヤ</button>
+      <button type="button" data-filter="#やってみたい" class="filter-chip px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 whitespace-nowrap">#やってみたい</button>
+    </section>
+
+    <!-- Timeline Feed -->
+    <section id="feedList" class="space-y-3.5" aria-live="polite"></section>
+  </main>
+
+  <!-- Rules Modal -->
+  <div id="rulesModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-900">この場所の「5つの約束」</h3>
+        <button id="closeRulesBtn" type="button" class="text-slate-400 hover:text-slate-700 text-sm font-bold px-2 py-1">✕</button>
+      </div>
+      <ol class="space-y-2.5 text-xs sm:text-sm text-slate-700 list-decimal pl-5 leading-relaxed">
+        <li><strong>個人情報は書かない</strong>：本名・学校名・住んでる地域・LINEなどの連絡先はNG。</li>
+        <li><strong>人の意見をからかわない</strong>：自分と違う考え方でも否定せず受け止める。</li>
+        <li><strong>競争しない</strong>：いいね数やフォロワー数はありません。気楽に書こう。</li>
+        <li><strong>スクショして外に出さない</strong>：ここだけの本音を守るため、SNS等への転載は禁止。</li>
+        <li><strong>困ったら「相談」を押す</strong>：少しでも嫌な投稿があれば、お兄ちゃんに知らせてね。</li>
+      </ol>
+      <button id="agreeRulesBtn" type="button" class="w-full py-2.5 rounded-xl bg-amber-400 text-slate-900 font-semibold text-sm hover:bg-amber-300 transition">
+        わかった！
+      </button>
+    </div>
+  </div>
+
+  <!-- Report / Consult Modal -->
+  <div id="reportModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-900">お兄ちゃんに報告・相談する</h3>
+        <button id="closeReportBtn" type="button" class="text-slate-400 hover:text-slate-700 text-sm font-bold px-2 py-1">✕</button>
+      </div>
+      <p class="text-xs text-slate-600">「ちょっと傷つくかも」「個人情報が入ってるかも」と思ったら遠慮なく送ってね。</p>
+      <form id="reportForm" class="space-y-3">
+        <input type="hidden" id="reportTargetId" />
+        <textarea id="reportReason" rows="3" placeholder="気になった理由を教えて（例：ちょっと言い方がきつく感じた、など）" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"></textarea>
+        <div class="flex justify-end gap-2">
+          <button id="cancelReportBtn" type="button" class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100">やめる</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-500">運営に送る</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-medium shadow-lg"></div>
+
+  <script>
+    const TOPICS = [
+      {
+        id: 't1',
+        title: '「大人になる」って、正直ワクワクする？それとも不安？',
+        desc: 'テストや進路の話が出始めるとモヤモヤすることもあるよね。正解はないから、今の正直な気持ちを置いてみて！'
+      },
+      {
+        id: 't2',
+        title: '学校のルールで「これ変やな」って思うことある？',
+        desc: '校則でも、クラスの空気でもOK。批判じゃなくて「こうなったらいいのに」を一緒に考えたいな。'
+      },
+      {
+        id: 't3',
+        title: '実はこっそりやってみたいこと・興味あること',
+        desc: '友達には恥ずかしくて言えない夢や趣味でも、ここなら誰も笑わへんで。'
+      }
+    ];
+
+    const INITIAL_POSTS = [
+      {
+        id: 'p1',
+        topicId: 't1',
+        nickname: '匿名の中学生',
+        tag: '#将来のこと',
+        content: '正直、自由に使えるお金が増えるのは楽しみやけど、「ちゃんとした大人にならなあかん」ってプレッシャーがしんどいときがある。',
+        timeLabel: 'さっき',
+        myStamps: { wakaru: false, ouen: false, naruhodo: false }
+      },
+      {
+        id: 'p2',
+        topicId: 't1',
+        nickname: '夜ふかしレモン好き',
+        tag: '#モヤモヤ',
+        content: '親や先生は「今のうちに頑張れ」って言うけど、具体的に何をどう楽しめばいいのかあんまりピンと来てないのが本音。',
+        timeLabel: '12分前',
+        myStamps: { wakaru: true, ouen: false, naruhodo: false }
+      },
+      {
+        id: 'p3',
+        topicId: 't1',
+        nickname: 'バスケ部1年',
+        tag: '#やってみたい',
+        content: '大人になったら自分の部屋を好きな音楽とかポスターでいっぱいにしたい！小さいことかもしれんけどそれが今のモチベ。',
+        timeLabel: '35分前',
+        myStamps: { wakaru: false, ouen: true, naruhodo: false }
+      },
+      {
+        id: 'p4',
+        topicId: 't2',
+        nickname: '匿名の中学生',
+        tag: '#学校・日常',
+        content: '「みんなと同じ」にしないと浮く空気がちょっと苦手。自分の意見を言っても変な目で見られない場所があったらいいのにと思う。',
+        timeLabel: '1時間前',
+        myStamps: { wakaru: false, ouen: false, naruhodo: false }
+      },
+      {
+        id: 'p5',
+        topicId: 't3',
+        nickname: 'ねこまんま',
+        tag: '#やってみたい',
+        content: '実は動画編集とかデザインを自分でやってみたいけど、パソコン持ってないし親に言い出しにくい。',
+        timeLabel: '2時間前',
+        myStamps: { wakaru: false, ouen: false, naruhodo: false }
+      }
+    ];
+
+    const NG_PATTERNS = [
+      { word: '死ね', reason: '人を傷つける言葉' },
+      { word: 'きもい', reason: '人を傷つける言葉' },
+      { word: 'うざい', reason: '人を傷つける言葉' },
+      { word: 'バカ', reason: '人を傷つける言葉' },
+      { word: 'line', reason: '連絡先の交換につながるワード' },
+      { word: 'ライン', reason: '連絡先の交換につながるワード' },
+      { word: 'discord', reason: '外部誘導につながるワード' },
+      { word: '@', reason: 'SNSアカウント・連絡先の可能性' },
+      { word: '中学校', reason: '学校名など個人特定の可能性' }
+    ];
+
+    const state = {
+      mode: 'student', // 'student' | 'admin'
+      topics: [...TOPICS],
+      currentTopicId: 't1',
+      activeFilter: 'すべて',
+      posts: [...INITIAL_POSTS],
+      logs: [
+        { time: '21:10', type: '自動ブロック', detail: '「中学校」を含む投稿を安全フィルターで非公開にしました。' }
+      ]
+    };
+
+    const el = {
+      studentModeBtn: document.getElementById('studentModeBtn'),
+      adminModeBtn: document.getElementById('adminModeBtn'),
+      adminPanel: document.getElementById('adminPanel'),
+      topicSelect: document.getElementById('topicSelect'),
+      currentTopicTitle: document.getElementById('currentTopicTitle'),
+      currentTopicDesc: document.getElementById('currentTopicDesc'),
+      addTopicForm: document.getElementById('addTopicForm'),
+      newTopicTitleInput: document.getElementById('newTopicTitleInput'),
+      newTopicDescInput: document.getElementById('newTopicDescInput'),
+      adminLogList: document.getElementById('adminLogList'),
+      logCountBadge: document.getElementById('logCountBadge'),
+      postForm: document.getElementById('postForm'),
+      postContent: document.getElementById('postContent'),
+      postTag: document.getElementById('postTag'),
+      postNickname: document.getElementById('postNickname'),
+      charCount: document.getElementById('charCount'),
+      composerAlert: document.getElementById('composerAlert'),
+      feedList: document.getElementById('feedList'),
+      rulesBtn: document.getElementById('rulesBtn'),
+      rulesModal: document.getElementById('rulesModal'),
+      closeRulesBtn: document.getElementById('closeRulesBtn'),
+      agreeRulesBtn: document.getElementById('agreeRulesBtn'),
+      reportModal: document.getElementById('reportModal'),
+      closeReportBtn: document.getElementById('closeReportBtn'),
+      cancelReportBtn: document.getElementById('cancelReportBtn'),
+      reportForm: document.getElementById('reportForm'),
+      reportTargetId: document.getElementById('reportTargetId'),
+      reportReason: document.getElementById('reportReason'),
+      toast: document.getElementById('toast')
+    };
+
+    let toastTimer = null;
+    function showToast(msg) {
+      el.toast.textContent = msg;
+      el.toast.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.toast.classList.add('hidden'), 2800);
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderTopics() {
+      el.topicSelect.innerHTML = state.topics
+        .map(t => `<option value="${t.id}" ${t.id === state.currentTopicId ? 'selected' : ''}>${escapeHtml(t.title)}</option>`)
+        .join('');
+      const current = state.topics.find(t => t.id === state.currentTopicId) || state.topics[0];
+      el.currentTopicTitle.textContent = current.title;
+      el.currentTopicDesc.textContent = current.desc;
+    }
+
+    function renderMode() {
+      if (state.mode === 'admin') {
+        el.adminPanel.classList.remove('hidden');
+        el.adminModeBtn.className = 'px-2.5 py-1 text-xs font-semibold rounded-md bg-white text-slate-900 shadow-sm transition';
+        el.studentModeBtn.className = 'px-2.5 py-1 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 transition';
+      } else {
+        el.adminPanel.classList.add('hidden');
+        el.studentModeBtn.className = 'px-2.5 py-1 text-xs font-semibold rounded-md bg-white text-slate-900 shadow-sm transition';
+        el.adminModeBtn.className = 'px-2.5 py-1 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 transition';
+      }
+      renderAdminLogs();
+      renderFeed();
+    }
+
+    function renderAdminLogs() {
+      el.logCountBadge.textContent = `${state.logs.length}件`;
+      if (state.logs.length === 0) {
+        el.adminLogList.innerHTML = '<div class="text-slate-400">ログはまだありません。</div>';
+        return;
+      }
+      el.adminLogList.innerHTML = state.logs
+        .map(log => `
+          <div class="rounded-lg bg-slate-900/90 border border-slate-700 px-3 py-2 flex items-start justify-between gap-2">
+            <div>
+              <span class="inline-block px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-semibold mr-1.5">${escapeHtml(log.type)}</span>
+              <span class="text-slate-200">${escapeHtml(log.detail)}</span>
+            </div>
+            <span class="text-slate-500 shrink-0">${escapeHtml(log.time)}</span>
+          </div>
+        `)
+        .join('');
+    }
+
+    function renderFeed() {
+      const visiblePosts = state.posts.filter(p => {
+        const matchTopic = p.topicId === state.currentTopicId;
+        const matchTag = state.activeFilter === 'すべて' || p.tag === state.activeFilter;
+        return matchTopic && matchTag;
+      });
+
+      if (visiblePosts.length === 0) {
+        el.feedList.innerHTML = `
+          <div class="rounded-2xl bg-white border border-dashed border-slate-300 p-8 text-center space-y-1.5">
+            <div class="text-sm font-semibold text-slate-700">この条件の投稿はまだありません</div>
+            <p class="text-xs text-slate-500">最初の一言をポンと置いてみてな！</p>
+          </div>
+        `;
+        return;
+      }
+
+      el.feedList.innerHTML = visiblePosts.map(post => {
+        const wActive = post.myStamps.wakaru;
+        const oActive = post.myStamps.ouen;
+        const nActive = post.myStamps.naruhodo;
+        return `
+          <article class="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 shrink-0">
+                  ${escapeHtml(post.nickname.slice(0, 1))}
+                </div>
+                <span class="text-xs sm:text-sm font-semibold text-slate-800 truncate">${escapeHtml(post.nickname)}</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200 shrink-0">${escapeHtml(post.tag)}</span>
+              </div>
+              <span class="text-xs text-slate-400 shrink-0">${escapeHtml(post.timeLabel)}</span>
+            </div>
+
+            <p class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.content)}</p>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" data-action="stamp" data-id="${post.id}" data-stamp="wakaru"
+                  class="stamp-btn px-2.5 py-1 rounded-full text-xs font-medium border ${wActive ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
+                  🙌 わかる！
+                </button>
+                <button type="button" data-action="stamp" data-id="${post.id}" data-stamp="ouen"
+                  class="stamp-btn px-2.5 py-1 rounded-full text-xs font-medium border ${oActive ? 'bg-emerald-100 border-emerald-300 text-emerald-900' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
+                  🌱 応援してる
+                </button>
+                <button type="button" data-action="stamp" data-id="${post.id}" data-stamp="naruhodo"
+                  class="stamp-btn px-2.5 py-1 rounded-full text-xs font-medium border ${nActive ? 'bg-sky-100 border-sky-300 text-sky-900' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
+                  💡 なるほど
+                </button>
+              </div>
+
+              <div class="flex items-center gap-2">
+                ${state.mode === 'admin' ? `
+                  <button type="button" data-action="delete" data-id="${post.id}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold px-2 py-1 rounded-lg hover:bg-rose-50">
+                    削除（運営）
+                  </button>
+                ` : ''}
+                <button type="button" data-action="report" data-id="${post.id}" class="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100">
+                  相談・報告
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function checkSafety(text) {
+      const lower = text.toLowerCase();
+      for (const rule of NG_PATTERNS) {
+        if (lower.includes(rule.word.toLowerCase())) {
+          return rule;
+        }
+      }
+      if (/\d{2,4}-\d{2,4}-\d{3,4}/.test(text)) {
+        return { word: '電話番号', reason: '個人情報の可能性' };
+      }
+      return null;
+    }
+
+    function nowTimeStr() {
+      const d = new Date();
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    // Event Listeners
+    el.studentModeBtn.addEventListener('click', () => {
+      state.mode = 'student';
+      renderMode();
+    });
+
+    el.adminModeBtn.addEventListener('click', () => {
+      state.mode = 'admin';
+      renderMode();
+    });
+
+    el.topicSelect.addEventListener('change', (e) => {
+      state.currentTopicId = e.target.value;
+      renderTopics();
+      renderFeed();
+    });
+
+    el.addTopicForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = el.newTopicTitleInput.value.trim();
+      const desc = el.newTopicDescInput.value.trim() || '正解はないから、今の気持ちをそのまま置いてみて！';
+      if (!title) {
+        showToast('お題タイトルを入力してな！');
+        return;
+      }
+      const newId = 't' + Date.now();
+      state.topics.unshift({ id: newId, title, desc });
+      state.currentTopicId = newId;
+      el.newTopicTitleInput.value = '';
+      el.newTopicDescInput.value = '';
+      renderTopics();
+      renderFeed();
+      showToast('新しいお題を追加して切り替えたで！');
+    });
+
+    el.postContent.addEventListener('input', () => {
+      el.charCount.textContent = `${el.postContent.value.length} / 200`;
+      el.composerAlert.classList.add('hidden');
+    });
+
+    el.postForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const content = el.postContent.value.trim();
+      if (!content) {
+        el.composerAlert.textContent = '何かひとこと書いてから投稿ボタンを押してね。';
+        el.composerAlert.classList.remove('hidden');
+        return;
+      }
+      const violation = checkSafety(content);
+      if (violation) {
+        el.composerAlert.innerHTML = `<strong>お兄ちゃん安全フィルター：</strong>「${escapeHtml(violation.word)}」（${escapeHtml(violation.reason)}）が含まれているため投稿を止めました。言い方を変えるか、個人情報を消して試してね。`;
+        el.composerAlert.classList.remove('hidden');
+        state.logs.unshift({
+          time: nowTimeStr(),
+          type: '自動ブロック',
+          detail: `「${violation.word}」を含む投稿をブロックしました。`
+        });
+        renderAdminLogs();
+        return;
+      }
+
+      const nickname = el.postNickname.value.trim() || '匿名の中学生';
+      const newPost = {
+        id: 'p' + Date.now(),
+        topicId: state.currentTopicId,
+        nickname,
+        tag: el.postTag.value,
+        content,
+        timeLabel: 'たった今',
+        myStamps: { wakaru: false, ouen: false, naruhodo: false }
+      };
+      state.posts.unshift(newPost);
+      el.postContent.value = '';
+      el.charCount.textContent = '0 / 200';
+      el.composerAlert.classList.add('hidden');
+      renderFeed();
+      showToast('本音をタイムラインに置いたよ！');
+    });
+
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.activeFilter = btn.dataset.filter;
+        document.querySelectorAll('.filter-chip').forEach(b => {
+          if (b.dataset.filter === state.activeFilter) {
+            b.className = 'filter-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-white whitespace-nowrap';
+          } else {
+            b.className = 'filter-chip px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 whitespace-nowrap';
+          }
+        });
+        renderFeed();
+      });
+    });
+
+    el.feedList.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const { action, id, stamp } = btn.dataset;
+      const post = state.posts.find(p => p.id === id);
+      if (!post) return;
+
+      if (action === 'stamp' && stamp) {
+        post.myStamps[stamp] = !post.myStamps[stamp];
+        renderFeed();
+        if (post.myStamps[stamp]) {
+          showToast('共感スタンプを送ったよ（数字は表示されません）');
+        }
+      } else if (action === 'delete') {
+        state.posts = state.posts.filter(p => p.id !== id);
+        state.logs.unshift({
+          time: nowTimeStr(),
+          type: '運営削除',
+          detail: `投稿（${post.nickname}）を運営ビューから削除しました。`
+        });
+        renderAdminLogs();
+        renderFeed();
+        showToast('投稿を削除しました');
+      } else if (action === 'report') {
+        el.reportTargetId.value = id;
+        el.reportReason.value = '';
+        el.reportModal.classList.remove('hidden');
+      }
+    });
+
+    el.rulesBtn.addEventListener('click', () => el.rulesModal.classList.remove('hidden'));
+    el.closeRulesBtn.addEventListener('click', () => el.rulesModal.classList.add('hidden'));
+    el.agreeRulesBtn.addEventListener('click', () => el.rulesModal.classList.add('hidden'));
+
+    el.closeReportBtn.addEventListener('click', () => el.reportModal.classList.add('hidden'));
+    el.cancelReportBtn.addEventListener('click', () => el.reportModal.classList.add('hidden'));
+
+    el.reportForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const reason = el.reportReason.value.trim() || '理由の記載なし';
+      state.logs.unshift({
+        time: nowTimeStr(),
+        type: '相談・報告',
+        detail: `メンバーから報告がありました：「${reason}」`
+      });
+      renderAdminLogs();
+      el.reportModal.classList.add('hidden');
+      showToast('お兄ちゃん（運営）に送信したよ。ありがとう！');
+    });
+
+    // Init
+    renderTopics();
+    renderMode();
+  </script>
+</body>
+</html>
