@@ -91,7 +91,7 @@
   <header id="appHeader" class="sticky top-0 z-30 bg-[#fffbf2]/95 backdrop-blur-md border-b border-amber-200/70 transition-colors">
     <div class="max-w-xl mx-auto px-3.5 sm:px-4 py-2.5 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white shadow-sm shrink-0">
+        <div id="logoBadge" class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white shadow-sm shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
@@ -123,17 +123,40 @@
   <!-- Main Content -->
   <main class="flex-1 max-w-xl w-full mx-auto px-3.5 sm:px-4 py-3.5 sm:py-5 space-y-3.5 pb-24 sm:pb-10">
     <!-- Admin Control Panel (Visible only when Admin Mode is unlocked) -->
-    <section id="adminPanel" class="hidden rounded-3xl bg-slate-900 text-slate-100 p-4 space-y-3.5 shadow-lg border border-amber-400/50">
+    <section id="adminPanel" class="hidden rounded-3xl bg-slate-900 text-slate-100 p-4 space-y-4 shadow-lg border border-amber-400/50">
       <div class="flex items-center justify-between gap-2">
         <div>
           <h2 class="font-maru text-sm sm:text-base font-bold text-amber-300">🔑 お兄ちゃん（管理者）パネル</h2>
-          <p class="text-[11px] text-slate-300">お題の追加・投稿への返信・削除ができます</p>
+          <p class="text-[11px] text-slate-300">通報確認・NGワード追加・お題追加・返信・削除ができます</p>
         </div>
         <button id="exitAdminBtn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-600 text-xs font-semibold text-slate-200 hover:bg-slate-700">
           管理者終了
         </button>
       </div>
 
+      <!-- Reported Posts Queue (Top of Admin Panel) -->
+      <div class="rounded-2xl bg-rose-950/50 border border-rose-500/40 p-3 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-rose-200">🚨 通報された投稿一覧（5件以上で自動非表示）</span>
+          <span id="reportedCountBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-rose-500/30 text-rose-200 font-bold">0件</span>
+        </div>
+        <div id="reportedPostsList" class="space-y-2 max-h-64 overflow-y-auto text-xs"></div>
+      </div>
+
+      <!-- Dynamic NG Words Manager -->
+      <div class="rounded-2xl bg-slate-800/90 border border-slate-700 p-3 space-y-2.5">
+        <div class="text-xs font-bold text-slate-200">🛡️ NGワードの動的追加（コード編集不要）</div>
+        <form id="addNgWordForm" class="flex flex-col sm:flex-row gap-2">
+          <input id="newNgWordInput" type="text" placeholder="禁止したい言葉（例：ばかやろう）" class="flex-1 px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          <input id="newNgReasonInput" type="text" placeholder="理由（例：傷つける言葉）" class="sm:w-40 px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold hover:bg-emerald-400 transition shrink-0">
+            追加
+          </button>
+        </form>
+        <div id="customNgList" class="flex flex-wrap gap-1.5 pt-1"></div>
+      </div>
+
+      <!-- Add New Topic -->
       <form id="addTopicForm" class="rounded-2xl bg-slate-800/90 border border-slate-700 p-3 space-y-2">
         <div class="text-xs font-bold text-slate-200">＋ 新しいお題を追加する</div>
         <input id="newTopicTitle" type="text" placeholder="お題タイトル（例：テスト前ってどうやって気合入れてる？）" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400" />
@@ -145,9 +168,10 @@
         </div>
       </form>
 
+      <!-- Mod Logs -->
       <div class="rounded-2xl bg-slate-800/90 border border-slate-700 p-3 space-y-2">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-200">報告・フィルターログ</span>
+          <span class="text-xs font-bold text-slate-200">自動フィルター・相談ログ</span>
           <span id="adminLogCount" class="text-[11px] text-slate-400">0件</span>
         </div>
         <div id="adminLogList" class="space-y-1.5 max-h-40 overflow-y-auto text-xs"></div>
@@ -163,7 +187,7 @@
       <button id="dismissWelcomeBtn" type="button" class="text-xs text-slate-400 hover:text-slate-700 px-1.5 py-0.5 shrink-0" aria-label="閉じる">✕</button>
     </section>
 
-    <!-- Weekly Prompt Banner + Topic Filter -->
+    <!-- Weekly Prompt Banner + Topic Filter + Answer CTA -->
     <section class="rounded-3xl bg-gradient-to-br from-amber-100/95 via-orange-50 to-rose-50 border border-amber-200/80 p-4 shadow-sm space-y-2.5 text-slate-900">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/90 text-amber-900 border border-amber-200">
@@ -174,20 +198,25 @@
       <h2 id="currentTopicTitle" class="font-maru text-base sm:text-lg font-bold text-slate-900 leading-snug"></h2>
       <p id="currentTopicDesc" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
 
-      <div class="pt-1 flex flex-wrap items-center justify-between gap-2 border-t border-amber-200/60">
-        <span id="topicCountLabel" class="text-xs font-semibold text-amber-900">このお題の答え：0件</span>
-        <button id="toggleAllTopicsBtn" type="button" class="px-3 py-1.5 rounded-full text-xs font-bold bg-white/90 border border-amber-300 text-amber-900 hover:bg-white active:scale-95 transition">
-          すべてのお題の答えを見る
+      <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-amber-200/60">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span id="topicCountLabel" class="text-xs font-semibold text-amber-900">このお題の答え：0件</span>
+          <button id="toggleAllTopicsBtn" type="button" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/80 border border-amber-300 text-amber-900 hover:bg-white active:scale-95 transition">
+            すべてのお題の答えを見る
+          </button>
+        </div>
+        <button id="answerTopicBtn" type="button" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-white hover:bg-amber-400 active:scale-95 transition shadow-xs">
+          このお題について書く ✏️
         </button>
       </div>
     </section>
 
     <!-- Post Composer -->
-    <section id="composerSection" class="rounded-3xl bg-white border border-amber-200/80 p-4 shadow-sm text-slate-900">
+    <section id="composerSection" class="rounded-3xl bg-white border border-amber-200/80 p-4 shadow-sm text-slate-900 transition-all">
       <form id="postForm" class="space-y-3">
-        <div class="flex items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
           <span class="font-maru text-sm font-bold text-slate-800">✏️ 本音をポンと置いてみる</span>
-          <span class="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">いいね数・履歴なし</span>
+          <span id="composerTargetTopicBadge" class="text-[11px] text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full truncate max-w-[210px]">お題に回答中</span>
         </div>
 
         <!-- Mood Selector -->
@@ -214,9 +243,14 @@
               🔵 意見も知りたい
             </button>
           </div>
+          <p class="text-[11px] text-slate-500">※「🟢 ただ聞いてほしい」を選ぶと、他の人からの返信はロックされてお兄ちゃんだけが受け止めるよ。</p>
         </div>
 
         <textarea id="postContent" rows="3" maxlength="200" placeholder="ここに思ったことをそのまま書いてみて（200文字まで）。誰が書いたかの履歴は残らへんよ。" class="w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-3.5 py-3 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-none"></textarea>
+
+        <p class="text-[11px] text-slate-500 leading-relaxed">
+          🛡️ 安全のため、<strong>本名・学校名・LINE/SNSのID・メールアドレス・URL・QRコードや会う約束</strong>などは自動ブロックされます。
+        </p>
 
         <div id="composerAlert" class="hidden rounded-2xl bg-rose-50 border border-rose-200 px-3.5 py-2.5 text-xs text-rose-800 leading-relaxed"></div>
 
@@ -337,7 +371,7 @@
         🛑
       </div>
       <div class="space-y-1.5">
-        <h3 class="font-maru text-base font-bold text-slate-900">ちょっとトゲがあるかも？</h3>
+        <h3 class="font-maru text-base font-bold text-slate-900">ちょっとトゲや危険があるかも？</h3>
         <p id="ngModalMsg" class="text-xs sm:text-sm text-slate-600 leading-relaxed">別の言葉にしてみよう！ここはみんなが安心して話せる「ココダケ」やで。</p>
       </div>
       <button id="closeNgModalBtn" type="button" class="w-full py-3 rounded-2xl bg-amber-400 text-slate-900 font-bold text-sm hover:bg-amber-300 active:scale-95 transition">
@@ -354,7 +388,7 @@
         <button id="closeRulesBtn" type="button" class="text-slate-400 hover:text-slate-700 text-sm font-bold px-2 py-1">✕</button>
       </div>
       <ol class="space-y-2.5 text-xs sm:text-sm text-slate-700 list-decimal pl-5 leading-relaxed">
-        <li><strong>個人情報は書かない</strong>：本名・学校名・住んでる地域・LINEなどの連絡先はNG。</li>
+        <li><strong>個人情報は書かない</strong>：本名・学校名・住んでる地域・LINEやSNSのID・アドレス・QRコード等はNG。</li>
         <li><strong>人の意見をからかわない</strong>：自分と違う考え方でも否定せず受け止める。</li>
         <li><strong>競争しない</strong>：いいね数やフォロワー数はありません。気楽に書こう。</li>
         <li><strong>スクショして外に出さない</strong>：ここだけの本音を守るため、SNS等への転載は禁止。</li>
@@ -379,10 +413,10 @@
         <h3 class="font-maru text-base font-bold text-slate-900">お兄ちゃんに報告・相談する</h3>
         <button id="closeReportBtn" type="button" class="text-slate-400 hover:text-slate-700 text-sm font-bold px-2 py-1">✕</button>
       </div>
-      <p class="text-xs text-slate-600 leading-relaxed">「ちょっと傷つくかも」「個人情報が入ってるかも」と思ったら遠慮なく送ってね。</p>
+      <p class="text-xs text-slate-600 leading-relaxed">「ちょっと傷つくかも」「個人情報が入ってるかも」と思ったら遠慮なく送ってね（5人以上から報告があると自動で一時非表示になります）。</p>
       <form id="reportForm" class="space-y-3">
         <input type="hidden" id="reportTargetId" />
-        <textarea id="reportReason" rows="3" placeholder="気になった理由を教えて（例：ちょっと言い方がきつく感じた、など）" class="w-full rounded-2xl border border-slate-300 px-3.5 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"></textarea>
+        <textarea id="reportReason" rows="3" placeholder="気になった理由を教えて（例：個人情報が書かれている、など）" class="w-full rounded-2xl border border-slate-300 px-3.5 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"></textarea>
         <div class="flex justify-end gap-2">
           <button id="cancelReportBtn" type="button" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100">やめる</button>
           <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-500">運営に送る</button>
@@ -428,6 +462,7 @@
         tag: '#モヤモヤ',
         content: '正直、自由に使えるお金が増えるのは楽しみやけど、「ちゃんとした大人にならなあかん」ってプレッシャーがしんどいときがある。',
         admin_reply: 'わかるで！最初から完璧な大人なんておらんし、迷いながらで全然ええんやで。',
+        admin_cleared: false,
         created_at: new Date().toISOString()
       },
       {
@@ -439,6 +474,7 @@
         tag: '#やってみたい',
         content: '大人になったら自分の部屋を好きな音楽とかポスターでいっぱいにしたい！小さいことかもしれんけどそれが今のモチベ。',
         admin_reply: '',
+        admin_cleared: false,
         created_at: new Date(Date.now() - 1800 * 1000).toISOString()
       }
     ];
@@ -450,7 +486,7 @@
       '#やってみたい': 'border-l-orange-400'
     };
 
-    const NG_PATTERNS = [
+    const BASE_NG_PATTERNS = [
       { word: '死ね', reason: '人を傷つける言葉' },
       { word: 'しね', reason: '人を傷つける言葉' },
       { word: 'キモい', reason: '人を傷つける言葉' },
@@ -492,8 +528,17 @@
       { word: 'うらあか', reason: '出会い・外部誘導につながる表現' },
       { word: '彼氏募集', reason: '出会い目的の表現' },
       { word: '彼女募集', reason: '出会い目的の表現' },
+      { word: '会おう', reason: '出会い目的の表現' },
+      { word: '会いたい', reason: '出会い目的の表現' },
+      { word: 'どこ住み', reason: '個人情報・出会いにつながる表現' },
+      { word: '何中', reason: '学校特定の可能性' },
       { word: '個チャ', reason: '個別連絡への誘導' },
       { word: 'dmして', reason: '個別連絡への誘導' },
+      { word: 'id交換', reason: 'ID交換・連絡先共有の禁止' },
+      { word: 'id教え', reason: 'ID交換・連絡先共有の禁止' },
+      { word: 'qrコード', reason: 'QRコード・連絡先共有の禁止' },
+      { word: 'アドレス', reason: 'メールアドレス等の個人情報の可能性' },
+      { word: 'メアド', reason: 'メールアドレス等の個人情報の可能性' },
       { word: 'line', reason: '連絡先の交換につながるワード' },
       { word: 'ライン', reason: '連絡先の交換につながるワード' },
       { word: 'らいん', reason: '連絡先の交換につながるワード' },
@@ -502,9 +547,10 @@
       { word: 'インスタ', reason: '外部SNSへの誘導' },
       { word: 'instagram', reason: '外部SNSへの誘導' },
       { word: 'tiktok', reason: '外部SNSへの誘導' },
-      { word: '@', reason: 'SNSアカウント・連絡先の可能性' },
-      { word: 'http://', reason: '外部URLの貼り付けは禁止されています' },
-      { word: 'https://', reason: '外部URLの貼り付けは禁止されています' },
+      { word: 'カカオ', reason: '外部連絡先への誘導' },
+      { word: 'テレグラム', reason: '外部連絡先への誘導' },
+      { word: '本名', reason: '個人情報の可能性' },
+      { word: '住所', reason: '個人情報の可能性' },
       { word: '中学校', reason: '学校名など個人特定の可能性' },
       { word: '小学校', reason: '学校名など個人特定の可能性' }
     ];
@@ -545,10 +591,13 @@
       selectedStance: '🟢 ただ聞いてほしい',
       posts: [...FALLBACK_POSTS],
       repliesByPost: {},
+      reportsByPost: {},
+      customNgWords: [],
       openReplyBoxId: null,
       openAdminReplyId: null,
       stamps: loadJsonStorage('kodomo_stamps', {}),
       myPostIds: loadJsonStorage('kokodake_my_posts', []),
+      reportedPostIds: loadJsonStorage('kokodake_reported_posts', []),
       seenNotifIds: loadJsonStorage('kokodake_seen_notifs', []),
       notifications: [],
       adminLogs: [],
@@ -572,6 +621,12 @@
       refreshBtn: document.getElementById('refreshBtn'),
       adminPanel: document.getElementById('adminPanel'),
       exitAdminBtn: document.getElementById('exitAdminBtn'),
+      reportedCountBadge: document.getElementById('reportedCountBadge'),
+      reportedPostsList: document.getElementById('reportedPostsList'),
+      addNgWordForm: document.getElementById('addNgWordForm'),
+      newNgWordInput: document.getElementById('newNgWordInput'),
+      newNgReasonInput: document.getElementById('newNgReasonInput'),
+      customNgList: document.getElementById('customNgList'),
       addTopicForm: document.getElementById('addTopicForm'),
       newTopicTitle: document.getElementById('newTopicTitle'),
       newTopicDesc: document.getElementById('newTopicDesc'),
@@ -589,7 +644,9 @@
       currentTopicDesc: document.getElementById('currentTopicDesc'),
       topicCountLabel: document.getElementById('topicCountLabel'),
       toggleAllTopicsBtn: document.getElementById('toggleAllTopicsBtn'),
+      answerTopicBtn: document.getElementById('answerTopicBtn'),
       composerSection: document.getElementById('composerSection'),
+      composerTargetTopicBadge: document.getElementById('composerTargetTopicBadge'),
       moodSelector: document.getElementById('moodSelector'),
       stanceSelector: document.getElementById('stanceSelector'),
       postForm: document.getElementById('postForm'),
@@ -680,16 +737,37 @@
     function checkSafety(text) {
       const normalized = text.toLowerCase().replace(/[\s　・._\-]/g, '');
       const rawLower = text.toLowerCase();
-      for (const rule of NG_PATTERNS) {
-        const w = rule.word.toLowerCase();
+      const allPatterns = [...BASE_NG_PATTERNS, ...state.customNgWords];
+
+      for (const rule of allPatterns) {
+        const w = String(rule.word || '').toLowerCase();
+        if (!w) continue;
         if (rawLower.includes(w) || normalized.includes(w)) {
-          return rule;
+          return { word: rule.word, reason: rule.reason || '禁止ワード' };
         }
       }
-      if (/\d{2,4}[-ー]?\d{2,4}[-ー]?\d{3,4}/.test(text)) {
-        return { word: '電話番号', reason: '個人情報の可能性' };
+      if (/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text)) {
+        return { word: 'メールアドレス', reason: '個人情報の保護' };
+      }
+      if (/@[a-zA-Z0-9_]{2,}/.test(text)) {
+        return { word: 'SNSアカウントID（@）', reason: '連絡先・アカウント共有の禁止' };
+      }
+      if (/https?:\/\/|www\./i.test(text)) {
+        return { word: 'URL・リンク', reason: '外部サイトへの誘導禁止' };
+      }
+      if (/\d{2,4}[-ー]?\d{2,4}[-ー]?\d{3,4}/.test(text) || /0\d{9,10}/.test(normalized)) {
+        return { word: '電話番号', reason: '個人情報の保護' };
       }
       return null;
+    }
+
+    function getReportCount(postId) {
+      const list = state.reportsByPost[postId] || [];
+      return list.length;
+    }
+
+    function isAutoHiddenPost(post) {
+      return getReportCount(post.id) >= 5 && !post.admin_cleared;
     }
 
     function initWelcomeBanner() {
@@ -707,7 +785,57 @@
         el.adminPanel.classList.remove('hidden');
       } else {
         el.adminPanel.classList.add('hidden');
+        return;
       }
+
+      // 1. Reported posts queue
+      const reportedPosts = state.posts
+        .filter(p => getReportCount(p.id) > 0)
+        .sort((a, b) => getReportCount(b.id) - getReportCount(a.id));
+
+      el.reportedCountBadge.textContent = `${reportedPosts.length}件`;
+      if (reportedPosts.length === 0) {
+        el.reportedPostsList.innerHTML = '<div class="text-slate-300">現在、通報された投稿はありません。</div>';
+      } else {
+        el.reportedPostsList.innerHTML = reportedPosts.map(p => {
+          const reps = state.reportsByPost[p.id] || [];
+          const hiddenTag = isAutoHiddenPost(p)
+            ? '<span class="px-1.5 py-0.5 rounded bg-rose-500 text-white font-bold">5件以上で自動非表示中</span>'
+            : `<span class="px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 font-semibold">通報 ${reps.length}件</span>`;
+          return `
+            <div class="rounded-xl bg-slate-900/90 border border-rose-500/40 p-2.5 space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                ${hiddenTag}
+                <span class="text-slate-400">${escapeHtml(p.nickname || '匿名')}</span>
+              </div>
+              <p class="text-slate-100 leading-relaxed">${escapeHtml(p.content)}</p>
+              <div class="text-[11px] text-rose-200/90">理由例：${escapeHtml(reps.map(r => r.reason).slice(0, 3).join(' / '))}</div>
+              <div class="flex justify-end gap-2 pt-1">
+                <button type="button" data-admin-queue-action="clear" data-id="${escapeHtml(p.id)}" class="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400">
+                  問題なし（公開に戻す）
+                </button>
+                <button type="button" data-admin-queue-action="delete" data-id="${escapeHtml(p.id)}" class="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-bold hover:bg-rose-500">
+                  削除する
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 2. Dynamic NG words
+      if (state.customNgWords.length === 0) {
+        el.customNgList.innerHTML = '<span class="text-[11px] text-slate-400">追加されたカスタムNGワードはまだありません。</span>';
+      } else {
+        el.customNgList.innerHTML = state.customNgWords.map(item => `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-600 text-[11px] text-slate-200">
+            <span>${escapeHtml(item.word)}</span>
+            <button type="button" data-remove-ng="${escapeHtml(item.id)}" class="text-rose-400 hover:text-rose-300 font-bold">✕</button>
+          </span>
+        `).join('');
+      }
+
+      // 3. Mod logs
       el.adminLogCount.textContent = `${state.adminLogs.length}件`;
       if (state.adminLogs.length === 0) {
         el.adminLogList.innerHTML = '<div class="text-slate-400">ログはまだありません</div>';
@@ -763,11 +891,13 @@
       const current = state.topics.find(t => t.id === state.currentTopicId) || state.topics[0];
       el.currentTopicTitle.textContent = current.title;
       el.currentTopicDesc.textContent = current.desc;
+      el.composerTargetTopicBadge.textContent = `お題：${current.title}`;
 
-      const countForCurrent = state.posts.filter(p => p.topic_id === state.currentTopicId).length;
+      const visibleTopicPosts = state.posts.filter(p => p.topic_id === state.currentTopicId && !isAutoHiddenPost(p));
+      const allVisiblePosts = state.posts.filter(p => !isAutoHiddenPost(p));
       el.topicCountLabel.textContent = state.showAllTopics
-        ? `すべてのお題の答え：${state.posts.length}件`
-        : `このお題の答え：${countForCurrent}件`;
+        ? `すべてのお題の答え：${allVisiblePosts.length}件`
+        : `このお題の答え：${visibleTopicPosts.length}件`;
       el.toggleAllTopicsBtn.textContent = state.showAllTopics
         ? 'このお題の答えだけ見る'
         : 'すべてのお題の答えを見る';
@@ -810,6 +940,7 @@
         return;
       }
       const visiblePosts = state.posts.filter(p => {
+        if (isAutoHiddenPost(p)) return false;
         const matchTopic = state.showAllTopics || p.topic_id === state.currentTopicId;
         const matchTag = state.activeFilter === 'すべて' || p.tag === state.activeFilter;
         return matchTopic && matchTag;
@@ -832,7 +963,8 @@
         const isNew = state.lastCreatedId === post.id;
         const leftBand = TAG_BORDER_MAP[post.tag] || 'border-l-amber-400';
         const replies = state.repliesByPost[post.id] || [];
-        const isReplyOpen = state.openReplyBoxId === post.id;
+        const isListenOnly = Boolean(post.stance && post.stance.includes('聞いて'));
+        const isReplyOpen = state.openReplyBoxId === post.id && !isListenOnly;
         const isAdminReplyOpen = state.openAdminReplyId === post.id;
         const topicBadge = state.showAllTopics && topicTitleMap[post.topic_id]
           ? `<div class="text-[11px] text-slate-500 bg-slate-50 rounded-lg px-2.5 py-1 border border-slate-100 truncate">お題：${escapeHtml(topicTitleMap[post.topic_id])}</div>`
@@ -855,7 +987,7 @@
 
             ${post.stance ? `
               <div>
-                <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold ${post.stance.includes('聞いて') ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-sky-50 text-sky-800 border border-sky-200'}">${escapeHtml(post.stance)}</span>
+                <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold ${isListenOnly ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-sky-50 text-sky-800 border border-sky-200'}">${escapeHtml(post.stance)}</span>
               </div>
             ` : ''}
 
@@ -885,7 +1017,7 @@
             <!-- Peer Reply Form -->
             ${isReplyOpen ? `
               <form data-reply-form="${escapeHtml(post.id)}" class="rounded-2xl bg-slate-50 border border-slate-200 p-3 space-y-2">
-                <div class="text-[11px] font-semibold text-slate-600">💬 やさしい返信を書く（NGワード自動チェック付き）</div>
+                <div class="text-[11px] font-semibold text-slate-600">💬 やさしい返信を書く（NGワード・個人情報自動チェック付き）</div>
                 <input type="text" name="replyNickname" maxlength="16" placeholder="ニックネーム（空欄＝匿名）" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400" />
                 <textarea name="replyContent" rows="2" maxlength="150" placeholder="相手を受け止めるひとことを書いてみてね" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"></textarea>
                 <div class="flex justify-end gap-2">
@@ -921,10 +1053,16 @@
                   class="stamp-btn px-2.5 sm:px-3 py-2 rounded-full text-xs font-semibold border ${myStamp.naruhodo ? 'bg-sky-100 border-sky-300 text-sky-900 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
                   💡 なるほど
                 </button>
-                <button type="button" data-action="toggle-reply" data-id="${escapeHtml(post.id)}"
-                  class="px-2.5 py-2 rounded-full text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100">
-                  💬 返信${replies.length > 0 ? `(${replies.length})` : ''}
-                </button>
+                ${isListenOnly ? `
+                  <span class="px-2.5 py-2 rounded-full text-[11px] font-medium bg-emerald-50/80 border border-emerald-200 text-emerald-800">
+                    🔒 返信ロック中
+                  </span>
+                ` : `
+                  <button type="button" data-action="toggle-reply" data-id="${escapeHtml(post.id)}"
+                    class="px-2.5 py-2 rounded-full text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100">
+                    💬 返信${replies.length > 0 ? `(${replies.length})` : ''}
+                  </button>
+                `}
               </div>
 
               <div class="flex items-center gap-1.5">
@@ -951,6 +1089,7 @@
         renderTopics();
         renderFeed();
         renderNotifications();
+        renderAdminState();
         return;
       }
       state.loading = true;
@@ -964,15 +1103,33 @@
         if (topicsData && topicsData.length > 0) state.topics = topicsData;
         if (postsData) state.posts = postsData;
 
-        // Fetch replies if table exists
-        const { data: repData, error: rErr } = await db.from('replies').select('*').order('created_at', { ascending: true }).limit(300);
-        if (!rErr && repData) {
+        // Fetch replies, reports, custom NG words safely
+        const [repRes, reportRes, ngRes] = await Promise.all([
+          db.from('replies').select('*').order('created_at', { ascending: true }).limit(300),
+          db.from('post_reports').select('*').order('created_at', { ascending: false }).limit(500),
+          db.from('custom_ng_words').select('*').order('created_at', { ascending: false }).limit(200)
+        ]);
+
+        if (!repRes.error && repRes.data) {
           const grouped = {};
-          repData.forEach(r => {
+          repRes.data.forEach(r => {
             if (!grouped[r.post_id]) grouped[r.post_id] = [];
             grouped[r.post_id].push(r);
           });
           state.repliesByPost = grouped;
+        }
+
+        if (!reportRes.error && reportRes.data) {
+          const repGrouped = {};
+          reportRes.data.forEach(rep => {
+            if (!repGrouped[rep.post_id]) repGrouped[rep.post_id] = [];
+            repGrouped[rep.post_id].push(rep);
+          });
+          state.reportsByPost = repGrouped;
+        }
+
+        if (!ngRes.error && ngRes.data) {
+          state.customNgWords = ngRes.data;
         }
 
         // Fetch reaction notifications for user's own posts
@@ -997,7 +1154,6 @@
               });
             });
           }
-          // Also notify if admin replied or peer replied to user's post
           state.myPostIds.forEach(pid => {
             const p = state.posts.find(x => x.id === pid);
             if (p && p.admin_reply) {
@@ -1048,6 +1204,18 @@
       setTimeout(() => el.postContent.focus(), 300);
     });
 
+    el.answerTopicBtn.addEventListener('click', () => {
+      state.showAllTopics = false;
+      renderTopics();
+      renderFeed();
+      el.composerSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.composerSection.classList.add('ring-2', 'ring-amber-400');
+      setTimeout(() => {
+        el.composerSection.classList.remove('ring-2', 'ring-amber-400');
+        el.postContent.focus();
+      }, 450);
+    });
+
     el.refreshBtn.addEventListener('click', () => {
       el.refreshBtn.classList.add('animate-pop');
       setTimeout(() => el.refreshBtn.classList.remove('animate-pop'), 380);
@@ -1095,6 +1263,84 @@
       renderAdminState();
       renderFeed();
       showToast('通常モードに戻ったよ');
+    });
+
+    el.addNgWordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const word = el.newNgWordInput.value.trim();
+      const reason = el.newNgReasonInput.value.trim() || '禁止ワード';
+      if (!word) {
+        showToast('追加したいNGワードを入力してな');
+        return;
+      }
+      const newItem = { id: 'ng_' + Date.now(), word, reason };
+      if (db) {
+        const { data, error } = await db.from('custom_ng_words').insert([{ word, reason }]).select();
+        if (error) {
+          showToast('保存に失敗（SQLでcustom_ng_words表を作ってね）');
+          return;
+        }
+        if (data && data[0]) newItem.id = data[0].id;
+      }
+      state.customNgWords.unshift(newItem);
+      el.newNgWordInput.value = '';
+      el.newNgReasonInput.value = '';
+      renderAdminState();
+      showToast(`NGワード「${word}」を追加したで！`);
+    });
+
+    el.customNgList.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-remove-ng]');
+      if (!btn) return;
+      const ngId = btn.dataset.removeNg;
+      if (db) {
+        const { error } = await db.from('custom_ng_words').delete().eq('id', ngId);
+        if (error) {
+          showToast('削除に失敗しました');
+          return;
+        }
+      }
+      state.customNgWords = state.customNgWords.filter(x => String(x.id) !== String(ngId));
+      renderAdminState();
+      showToast('NGワードを削除したよ');
+    });
+
+    el.reportedPostsList.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-admin-queue-action]');
+      if (!btn) return;
+      const action = btn.dataset.adminQueueAction;
+      const postId = btn.dataset.id;
+      if (action === 'clear') {
+        if (db) {
+          const { error } = await db.from('posts').update({ admin_cleared: true }).eq('id', postId);
+          if (error) {
+            showToast('更新に失敗（SQLでadmin_cleared列を追加してね）');
+            return;
+          }
+          await db.from('post_reports').delete().eq('post_id', postId);
+        }
+        const target = state.posts.find(p => p.id === postId);
+        if (target) target.admin_cleared = true;
+        delete state.reportsByPost[postId];
+        renderAdminState();
+        renderTopics();
+        renderFeed();
+        showToast('投稿を公開状態に戻したよ');
+      } else if (action === 'delete') {
+        if (db) {
+          const { error } = await db.from('posts').delete().eq('id', postId);
+          if (error) {
+            showToast('削除に失敗しました');
+            return;
+          }
+        }
+        state.posts = state.posts.filter(p => p.id !== postId);
+        delete state.reportsByPost[postId];
+        renderAdminState();
+        renderTopics();
+        renderFeed();
+        showToast('通報された投稿を削除したよ');
+      }
     });
 
     el.addTopicForm.addEventListener('submit', async (e) => {
@@ -1243,7 +1489,7 @@
 
       const violation = checkSafety(content);
       if (violation) {
-        el.ngModalMsg.textContent = `ちょっとトゲがあるかも？（「${violation.word}」：${violation.reason}） 別の言葉にしてみよう！`;
+        el.ngModalMsg.textContent = `ちょっとトゲや危険があるかも？（「${violation.word}」：${violation.reason}） 別の言葉にしてみよう！`;
         el.ngModal.classList.remove('hidden');
         if (db) {
           db.from('mod_logs').insert([{ log_type: '優しさフィルター', detail: `「${violation.word}」を含む投稿をブロック` }]).then(() => {});
@@ -1290,6 +1536,7 @@
             id: localId,
             ...payload,
             admin_reply: '',
+            admin_cleared: false,
             created_at: new Date().toISOString()
           });
           state.myPostIds.unshift(localId);
@@ -1351,6 +1598,11 @@
           }
         }
       } else if (action === 'toggle-reply') {
+        const target = state.posts.find(p => p.id === id);
+        if (target && target.stance && target.stance.includes('聞いて')) {
+          showToast('「ただ聞いてほしい」投稿への返信はロックされているよ');
+          return;
+        }
         state.openReplyBoxId = state.openReplyBoxId === id ? null : id;
         renderFeed();
       } else if (action === 'close-reply') {
@@ -1371,10 +1623,16 @@
           }
         }
         state.posts = state.posts.filter(p => p.id !== id);
+        delete state.reportsByPost[id];
+        renderAdminState();
         renderTopics();
         renderFeed();
         showToast('投稿を削除したよ');
       } else if (action === 'report') {
+        if (state.reportedPostIds.includes(id)) {
+          showToast('この投稿はすでに報告済みやで');
+          return;
+        }
         el.reportTargetId.value = id;
         el.reportReason.value = '';
         el.reportModal.classList.remove('hidden');
@@ -1386,6 +1644,11 @@
       if (replyForm) {
         e.preventDefault();
         const postId = replyForm.dataset.replyForm;
+        const targetPost = state.posts.find(p => p.id === postId);
+        if (targetPost && targetPost.stance && targetPost.stance.includes('聞いて')) {
+          showToast('「ただ聞いてほしい」投稿には返信できません');
+          return;
+        }
         const nickname = replyForm.querySelector('input[name="replyNickname"]').value.trim() || '匿名の中学生';
         const content = replyForm.querySelector('textarea[name="replyContent"]').value.trim();
         if (!content) {
@@ -1394,7 +1657,7 @@
         }
         const violation = checkSafety(content);
         if (violation) {
-          el.ngModalMsg.textContent = `ちょっとトゲがあるかも？（「${violation.word}」：${violation.reason}） 別の言葉にしてみよう！`;
+          el.ngModalMsg.textContent = `ちょっとトゲや危険があるかも？（「${violation.word}」：${violation.reason}） 別の言葉にしてみよう！`;
           el.ngModal.classList.remove('hidden');
           if (db) {
             db.from('mod_logs').insert([{ log_type: '返信フィルター', detail: `「${violation.word}」を含む返信をブロック` }]).then(() => {});
@@ -1464,11 +1727,39 @@
       e.preventDefault();
       const targetId = el.reportTargetId.value;
       const reason = el.reportReason.value.trim() || '理由の記載なし';
-      if (db) {
-        await db.from('mod_logs').insert([{ log_type: '相談・報告', detail: `投稿ID(${targetId}): ${reason}` }]);
+
+      if (!state.reportedPostIds.includes(targetId)) {
+        state.reportedPostIds.push(targetId);
+        saveJsonStorage('kokodake_reported_posts', state.reportedPostIds);
       }
+
+      if (!state.reportsByPost[targetId]) state.reportsByPost[targetId] = [];
+      state.reportsByPost[targetId].push({
+        post_id: targetId,
+        reporter_token: state.clientToken,
+        reason
+      });
+
+      if (db) {
+        await Promise.all([
+          db.from('post_reports').insert([{
+            post_id: targetId,
+            reporter_token: state.clientToken,
+            reason
+          }]),
+          db.from('mod_logs').insert([{ log_type: '相談・報告', detail: `投稿ID(${targetId}): ${reason}` }])
+        ]);
+      }
+
       el.reportModal.classList.add('hidden');
-      showToast('お兄ちゃん（運営）に送信したよ。ありがとう！');
+      renderAdminState();
+      renderTopics();
+      renderFeed();
+      if (getReportCount(targetId) >= 5) {
+        showToast('報告を受け付けたよ。5件以上に達したため一時非表示にしました。');
+      } else {
+        showToast('お兄ちゃん（運営）に送信したよ。ありがとう！');
+      }
     });
 
     // Init
